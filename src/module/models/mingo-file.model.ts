@@ -1,4 +1,3 @@
-import { Config } from '@hapiness/config';
 import { Model, MongoClientService, MongoModel } from '@hapiness/mongo';
 
 @MongoModel({

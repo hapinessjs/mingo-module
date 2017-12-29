@@ -1,12 +1,10 @@
 import { Observable } from 'rxjs/Observable';
-import { ReadStream } from 'fs';
-import { Model, DocumentQuery } from 'mongoose';
+import { Model, ModelUpdateOptions } from 'mongoose';
 import { Biim } from '@hapiness/biim';
-import { MinioService } from '@hapiness/minio';
 import { MongoClientService } from '@hapiness/mongo';
 import { MingoFileModel } from '../models/mingo-file.model';
 import { BucketManager } from './bucket.manager';
-import { MingoFileDocumentInterface, MingoFileInterface } from '../interfaces';
+import { MingoFileDocumentInterface, MingoFileInterface, UploadFileType } from '../interfaces';
 
 export class FilesManager {
     constructor(
@@ -18,7 +16,19 @@ export class FilesManager {
         return this._mongoClientService.getModel({ adapter: 'mongoose' }, MingoFileModel);
     }
 
-    upload(input: ReadStream | Buffer | string, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
+    /**
+     * Upload a file in mingo and saves metadata in mongodb
+     *
+     * Index file by filename.
+     * Upsert if file does not exists
+     * Overwrite if file already exists
+     *
+     * @param input File source
+     * @param filename Filename
+     * @param content_type Mime type
+     * @param metadata Custom object to store information about the file
+     */
+    upload(input: UploadFileType, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this._bucketService
             .createFile(input, filename, null, content_type)
             .switchMap((result): Observable<MingoFileInterface> =>
@@ -40,7 +50,15 @@ export class FilesManager {
             );
     }
 
-    create(input: ReadStream | Buffer | string, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
+    /**
+     * Create a file using upload method. Check that file does not exists before.
+     *
+     * @param input File source
+     * @param filename Filename
+     * @param content_type Mime type
+     * @param metadata Custom object to store informations about the file
+     */
+    create(input: UploadFileType, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this.exists(filename)
             .flatMap(_ => !!_ ?
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
@@ -49,76 +67,123 @@ export class FilesManager {
             .flatMap(_ => this.upload(input, filename, content_type, metadata));
     }
 
+    /**
+     * Checks if a file with a given filename already exists
+     *
+     * @param filename Filename
+     */
     exists(filename: string): Observable<boolean> {
         return this._bucketService
             .fileStat(filename)
             .flatMap(_ => !_ ?
                 Observable.of(false) :
-                this.findByFilename(filename)
-                    .flatMap(__ => !__ ?
-                        Observable.of(false) :
-                        Observable.of(true)
-                    )
+                this.findByFilename(filename, 'filename').map(__ => !!__)
             );
-    }
+        }
 
-    find(query: any, projection?: string | string[], options?): Observable<MingoFileDocumentInterface> {
+    /**
+     * Get a list of files matching the query
+     *
+     * Default limit 10000
+     * rxjs concatAll() does not like huge arrays
+     *
+     * @param query Mongo query object
+     * @param projection Fields to return
+     * @param options Mongo find options
+     */
+    find(query?: Object, projection?: string | string[], options?: Object): Observable<MingoFileDocumentInterface[]> {
+        const _options = Object.assign({ limit: 10000 }, options);
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
         return Observable
             .fromPromise(this._getDocument()
-                .findOne(query, projectionStr, options)
+                .find(query, projectionStr, _options)
             );
     }
 
-    findByFilename(filename: string, projection?: string | string[], options?): Observable<MingoFileDocumentInterface> {
-        const query = { filename };
-
-        return this.find(query, projection, options);
+    /**
+     * Find a file by filename
+     *
+     * @param filename Filename
+     * @param projection Fields to return
+     * @param options Mongo find options
+     */
+    findByFilename(filename: string, projection?: string | string[], options?: Object): Observable<MingoFileDocumentInterface> {
+        const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
+        return Observable.fromPromise(this._getDocument().findOne({ filename }, projectionStr, options));
     }
 
+    /**
+     * Download file content
+     *
+     * @param filename Filename
+     */
     download(filename: string): Observable<ReadableStream> {
-        return this.findByFilename(filename)
+        return this.findByFilename(filename, 'filename')
             .flatMap(_ => this._bucketService
                 .getAdapter()
                 .getObject(this._bucketService.getName(), _.filename)
             );
      }
 
-    // What's the update here ? stream or object ? Can you update the document metadata ?
-    update(query: any, update, options): Observable<MingoFileInterface> {
-        return this
-            .find(query, null, options)
-            .flatMap(_ => !!_ ?
-                Observable.of(_) :
-                Observable.throw(Biim.notFound(`No file found for: ${JSON.stringify(query)}`))
-            )
-            .flatMap(_ => this.upload(update, _.filename, _.content_type, _.metadata));
+    /**
+     * Update metadata of files matching query
+     *
+     * @param query Mongo query object
+     * @param update Metadata update object
+     * @param options Mongo update options
+     */
+    update(query: Object, update: Object, options: ModelUpdateOptions): Observable<any> {
+        return Observable.fromPromise(this._getDocument().update(query, { $set: this._prepareUpdateObject(update) }, options));
     }
 
-    updateByFilename(filename: string, data, options: any) {
-        const query = { filename };
-
-        return this.update(query, data, options);
+    /**
+     * Update metadata of one files by filename
+     *
+     * @param query Mongo query object
+     * @param update Metadata update object
+     * @param options Mongo update options
+     */
+    updateByFilename(filename: string, update: Object): Observable<MingoFileDocumentInterface> {
+        return Observable.fromPromise(this._getDocument()
+            .findOneAndUpdate({ filename }, { $set: this._prepareUpdateObject(update) }, { new: true, upsert: false }));
      }
 
-    remove(query: any, options: any): Observable<boolean> {
-        return Observable
-            .fromPromise(this._getDocument().findOneAndRemove(query, null, options))
-            .flatMap(_ => !_ ?
-                Observable.throw(Biim.notFound(`Couldn't find the document: ${JSON.stringify(query)}`)) :
-                Observable.of(_)
-                    .flatMap(__ => this._bucketService.removeFile(_.filename))
-                    .flatMap(__ => __ ?
-                        Observable.of(__) :
-                        Observable.throw(Biim.notFound(`Unable to remove file ${_.filename} from file-system.`))
-                    )
-                    // Should we add back the document to mongo here?
-            );
+    /**
+     * Transform an object for update to avoid erasing data
+     *
+     * { foo: 'bar', xoxo: { numbers: 1234 } } becomes
+     * { 'metadata.foo': 'bar', 'metadata.xoxo': { numbers: 1234 } }
+     *
+     * It does not rewrite sub objects, only root.
+     *
+     * @param input Object to reformat
+     */
+    private _prepareUpdateObject(input: Object): Object {
+        return Object.entries(input).reduce((acc, [key, value]) => Object.assign({ [`metadata.${key}`]: value }, acc), {});
     }
 
-    removeByFilename(filename: string, options: any): Observable<boolean> {
-        const query = { filename };
 
-        return this.remove(query, options);
+    /**
+     * Remove documents from db and minio
+     *
+     * @param query Mongo query object
+     * @param options Mongo options object
+     */
+    remove(query: Object, options?: Object): Observable<any> {
+        return this.find(query, ['filename'], options)
+            .map(files => files.map(file => this.removeByFilename(file.filename)))
+            .flatMap(files => Observable.from(files))
+            .concatAll()
+            .toArray();
+    }
+
+    removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
+        return this.exists(filename)
+            .flatMap(_ => Observable.fromPromise(this._getDocument().findOneAndRemove({ filename })))
+            .flatMap(file =>
+                this._bucketService
+                    .removeFile(filename)
+                    .flatMap(_ => _ ? Observable.of(file) : Observable.throw(Biim.badRequest(`Unable to remove file ${filename}`)))
+            );
      }
 }

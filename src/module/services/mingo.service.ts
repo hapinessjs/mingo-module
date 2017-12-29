@@ -3,7 +3,6 @@ import { FilesManager } from '../managers/files.manager';
 import { BucketManager } from '../managers/bucket.manager';
 import { MinioService, MinioBucketRegion } from '@hapiness/minio';
 import { Injectable, Inject } from '@hapiness/core';
-// import { MingoExt } from '../mingo.extension';
 
 @Injectable()
 export class MingoService {

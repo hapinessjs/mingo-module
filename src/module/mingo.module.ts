@@ -1,6 +1,6 @@
 import { HapinessModule, OnRegister, Inject, Optional } from '@hapiness/core';
-import { MinioModule, MinioService, MinioExt, MinioManager } from '@hapiness/minio';
-import { MongoModule, MongoClientService, MongoClientExt, MongoManager } from '@hapiness/mongo';
+import { MinioService, MinioExt, MinioManager } from '@hapiness/minio';
+import { MongoClientService, MongoClientExt, MongoManager } from '@hapiness/mongo';
 import { MingoService } from './services';
 import { MingoFileModel } from './models/mingo-file.model';
 import { Observable } from 'rxjs/Observable';
@@ -10,8 +10,7 @@ import { Observable } from 'rxjs/Observable';
     declarations: [
         MingoFileModel
     ],
-    imports: [
-    ],
+    imports: [],
     providers: [
         MongoClientService,
         MinioService
@@ -25,9 +24,7 @@ export class MingoModule implements OnRegister {
     constructor(
         @Optional() @Inject(MinioExt) private _minioManager: MinioManager,
         @Optional() @Inject(MongoClientExt) private _mongoManager: MongoManager
-    ) {
-
-    }
+    ) {}
 
     onRegister(): void | Observable<any> {
         if (!this._minioManager) {

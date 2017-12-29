@@ -6,11 +6,8 @@ import { ReadStream } from 'fs';
 export class BucketManager {
   private _name: string;
   private _region: MinioBucketRegion;
-  private _asserted: boolean;
 
-  constructor(private _minioService: MinioService) {
-    this._asserted = false;
-  }
+  constructor(private _minioService: MinioService) {}
 
   setName(value: string): BucketManager {
     this._name = value;
@@ -35,9 +32,7 @@ export class BucketManager {
   }
 
   assert(): Observable<null> {
-    return this._asserted ?
-      Observable.of(null) :
-      this._minioService
+    return this._minioService
         .bucketExists(this.getName())
         // .catch(_ => {
         //   console.log(`Error => `, _);
