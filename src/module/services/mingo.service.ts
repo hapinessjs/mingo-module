@@ -2,7 +2,7 @@ import { MongoClientService } from '@hapiness/mongo';
 import { FilesManager } from '../managers/files.manager';
 import { BucketManager } from '../managers/bucket.manager';
 import { MinioService, MinioBucketRegion } from '@hapiness/minio';
-import { Injectable, Inject } from '@hapiness/core';
+import { Injectable } from '@hapiness/core';
 
 @Injectable()
 export class MingoService {

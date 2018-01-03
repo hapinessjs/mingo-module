@@ -58,13 +58,13 @@ export class FilesManager {
      * @param content_type Mime type
      * @param metadata Custom object to store informations about the file
      */
-    create(input: UploadFileType, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
+    create(input: UploadFileType, filename, content_type?: string, metadata: { [key: string]: any} = {}): Observable<MingoFileInterface> {
         return this.exists(filename)
             .flatMap(_ => !!_ ?
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
                 Observable.of(_)
             )
-            .flatMap(_ => this.upload(input, filename, content_type, metadata));
+            .flatMap(_ => this.upload(input, filename, content_type, metadata || {}));
     }
 
     /**
@@ -75,9 +75,17 @@ export class FilesManager {
     exists(filename: string): Observable<boolean> {
         return this._bucketService
             .fileStat(filename)
+            .catch(err => {
+                if (err.code === 'NotFound') {
+                    return Observable.of(false);
+                }
+
+                return Observable.throw(err);
+            })
             .flatMap(_ => !_ ?
                 Observable.of(false) :
-                this.findByFilename(filename, 'filename').map(__ => !!__)
+                this.findByFilename(filename, 'filename')
+                    .map(__ => !!__)
             );
         }
 
@@ -132,8 +140,9 @@ export class FilesManager {
      * @param update Metadata update object
      * @param options Mongo update options
      */
-    update(query: Object, update: Object, options: ModelUpdateOptions): Observable<any> {
-        return Observable.fromPromise(this._getDocument().update(query, { $set: this._prepareUpdateObject(update) }, options));
+    update(query: Object, update: { [key: string]: any }, options: ModelUpdateOptions): Observable<any> {
+        return Observable.fromPromise(this._getDocument()
+            .update(query, { $set: this._prepareUpdateObject(update) }, options));
     }
 
     /**
@@ -143,8 +152,9 @@ export class FilesManager {
      * @param update Metadata update object
      * @param options Mongo update options
      */
-    updateByFilename(filename: string, update: Object): Observable<MingoFileDocumentInterface> {
-        return Observable.fromPromise(this._getDocument()
+    updateByFilename(filename: string, update: { [key: string]: any }): Observable<MingoFileDocumentInterface> {
+        return Observable
+            .fromPromise(this._getDocument()
             .findOneAndUpdate({ filename }, { $set: this._prepareUpdateObject(update) }, { new: true, upsert: false }));
      }
 
@@ -179,6 +189,9 @@ export class FilesManager {
 
     removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
         return this.exists(filename)
+            .flatMap(_ => _ ?
+                Observable.of(_) :
+                Observable.throw(Biim.notFound(`${filename} does not exist.`)))
             .flatMap(_ => Observable.fromPromise(this._getDocument().findOneAndRemove({ filename })))
             .flatMap(file =>
                 this._bucketService

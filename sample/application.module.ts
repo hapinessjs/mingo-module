@@ -1,13 +1,13 @@
-import { HapinessModule, OnStart, Inject, HttpServerExt, Server } from '@hapiness/core';
-import { MingoModule } from '../src/module/mingo.module';
-import { CreateFile } from './CreateFile';
 import * as fs from 'fs';
-import { MinioService, MinioModule } from '@hapiness/minio';
-import { MongoClientService, MongoModule } from '@hapiness/mongo';
+import { ReadStream } from 'fs-extra';
+import { HapinessModule, OnStart } from '@hapiness/core';
+import { MinioModule } from '@hapiness/minio';
+import { MongoModule } from '@hapiness/mongo';
+import { MingoModule } from '../src/module/mingo.module';
 import { MingoService } from '../src/index';
 import { FilesManager } from '../src/module/managers/files.manager';
-import { Observable } from 'rxjs/Observable';
-import { ReadStream } from 'fs-extra';
+
+const debug = require('debug')('hapiness:mingo-module')
 
 @HapinessModule({
     version: '1.0.0',
@@ -18,39 +18,47 @@ import { ReadStream } from 'fs-extra';
         MingoModule
     ],
     providers: [
-        // CreateFile
         MingoService
     ],
     exports: []
 })
 export class ApplicationModule implements OnStart {
 
-    //   constructor(private _createFile: CreateFile) {}
     constructor(private _mingoService: MingoService) { }
 
     onStart() {
-        // this._createFile
-        //   .create(fs.createReadStream('./package.json'), 'package.json', { xo: { xa: { foo: 'bar' } } })
-        //   .subscribe(_ => console.log(_), err => console.log(err.stack));
         const self = this;
         function fb(): FilesManager {
             return self._mingoService.fromBucket('test.bucket');
         }
 
         fb().create(fs.createReadStream('./package.json'), 'package.json', 'json', null)
+            .do(_ => debug(`create _ ==> `, _))
             .flatMap(_ => fb().exists('package.json'))
+            .do(_ => debug(`exists after create _ ==> `, _))
             .flatMap(_ => fb().findByFilename('package.json'))
-            .flatMap(_ => fb().updateByFilename('package.json', './tslint.json', null))
+            .do(_ => debug(`findByFilename _ ==> `, _))
+            .flatMap(_ => fb().updateByFilename('package.json', { toto: 'titi' }))
+            .do(_ => debug(`updateByFilename _ ==> `, _))
             .flatMap(_ => fb().exists('package.json'))
+            .do(_ => debug(`exists after update _ ==> `, _))
             .flatMap(_ => fb().download('package.json')
-                .flatMap((__: any) => {
-                    const ws = fs.createWriteStream('./package.result.json');
-                    (__ as ReadStream).pipe(ws);
-                    return __;
-                })
+                .map((__: any) => (__ as ReadStream).pipe(fs.createWriteStream('./package.result.zip')))
             )
-            .flatMap(_ => fb().removeByFilename('./package.json', null))
-            .do(_ => console.log(`DONE ! with result ${_}`));
+            .do(_ => debug(`downloaded!`))
+            .flatMap(_ => fb().removeByFilename('package.json'))
+            .do(_ => debug(`DONE! with result ${_}`))
+            .subscribe(_ => debug(`next = `, _),
+                err => {
+                    debug(`error : `, err)
+                    debug(`stack : `, err.stack)
+                    fb().removeByFilename('package.json')
+                        .do(_ => debug(`REMOVED ! ${_}`))
+                        .subscribe(_ => debug(`next = `, _),
+                            error => debug(`error on remove : `, error),
+                            () => debug(`done`));
+                },
+                () => process.exit(0));
     }
 
 }

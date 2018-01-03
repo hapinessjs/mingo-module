@@ -34,15 +34,11 @@ export class BucketManager {
   assert(): Observable<null> {
     return this._minioService
         .bucketExists(this.getName())
-        // .catch(_ => {
-        //   console.log(`Error => `, _);
-        //   return Observable.of(false);
-        // })
-        // .do(_ => console.log(`bucket exists ? ${_}`))
         .filter(_ => !_)
-        .switchMap(_ => this._minioService
+        .flatMap(_ => this._minioService
           .makeBucket(this.getName(), this.getRegion())
-          .map(() => null));
+          .map(() => null))
+        .defaultIfEmpty(null);
   }
 
   createFile(input: ReadStream | Buffer | string, filename: string, size?: number, contentType?: string): Observable<MinioStatObject> {

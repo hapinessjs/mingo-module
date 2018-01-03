@@ -5,7 +5,7 @@ import { MongoClientExt } from '@hapiness/mongo';
 import { ApplicationModule } from './application.module';
 import { MinioExt } from '@hapiness/minio';
 
-export const bootstrap = Hapiness.bootstrap(ApplicationModule, [
+Hapiness.bootstrap(ApplicationModule, [
     MongoClientExt.setConfig({
         load: [
             {
@@ -18,7 +18,6 @@ export const bootstrap = Hapiness.bootstrap(ApplicationModule, [
     }),
     MinioExt.setConfig(Config.get('minio'))
 ])
-.then(_ => console.log('--->', _))
 .catch(err => {
     console.log('ERR --->', err.stack);
 });
