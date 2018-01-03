@@ -74,5 +74,4 @@ export class BucketManagerUnitTest {
         const obs = this._bucketManager.fileStat('sample.txt');
         obs.subscribe(_ => done(), err => done(err));
     }
-
 }

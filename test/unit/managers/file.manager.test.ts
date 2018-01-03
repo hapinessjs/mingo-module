@@ -71,12 +71,23 @@ export class FilesManagerUnitTest {
     existsNo2(done) {
         const filename = 'helloworld.txt';
         unit.function(this._filesManager.exists);
-        unit.stub(this._bucketManager, 'fileStat').returns(Observable.of(null));
+        unit.stub(this._bucketManager, 'fileStat').returns(Observable.throw({ code: 'NotFound' }));
         const obs = this._filesManager.exists(filename);
         obs.subscribe(_ => {
             unit.bool(_).isFalse();
             done();
         }, err => done(err));
+    }
+
+    @test('- exists: filestat throw another error than "NotFound"')
+    existsNo3(done) {
+        const filename = 'helloworld.txt';
+        unit.function(this._filesManager.exists);
+        unit.stub(this._bucketManager, 'fileStat').returns(Observable.throw({ code: 'AnotherError' }));
+        const obs = this._filesManager.exists(filename);
+        obs.subscribe(_ => {
+            done(new Error('Should not be here!'));
+        }, err => done());
     }
 
     @test('- Upload')
@@ -172,6 +183,26 @@ export class FilesManagerUnitTest {
         }, err => done(err));
     }
 
+    @test('- find: with projection as an array')
+    findWithProjection(done) {
+        const input = Buffer.from('helloworld');
+        const filename = 'helloworld.txt';
+        const file = {
+            filename,
+            content_type: 'application/octet-stream',
+            size: input.length,
+            created_at: new Date(),
+            updated_at: new Date()
+        };
+        this._modelMock.find.returns(Promise.resolve([file]));
+        unit.function(this._filesManager.find);
+        const obs = this._filesManager.find(null, ['filename', 'content_type', 'size', 'created_at', 'updated_at']);
+        obs.subscribe(_ => {
+            unit.array(_).is([file]);
+            done();
+        }, err => done(err));
+    }
+
     @test('- findByFilename')
     findByFilename(done) {
         const input = Buffer.from('helloworld');
@@ -194,6 +225,24 @@ export class FilesManagerUnitTest {
         }, err => done(err));
     }
 
+    @test('- findByFilename: with projection as an array')
+    findByFilenameWithProjection(done) {
+        const input = Buffer.from('helloworld');
+        const filename = 'helloworld.txt';
+        const file = {
+            filename,
+            content_type: 'application/octet-stream',
+            size: input.length
+        };
+        this._modelMock.findOne.returns(Promise.resolve(file));
+        unit.function(this._filesManager.findByFilename);
+        const obs = this._filesManager.findByFilename(filename, ['filename', 'content_type', 'size']);
+        obs.subscribe(_ => {
+            unit.object(_).is(file);
+            done();
+        }, err => done(err));
+    }
+
     @test('- download')
     download(done) {
         const readStream = new Readable();
@@ -210,5 +259,48 @@ export class FilesManagerUnitTest {
             done();
         }, err => done(err));
     }
+
+    @test('- _prepareUpdateObject')
+    _prepareUpdateObject() {
+        const input = {
+            meta1: '',
+            meta2: 2,
+            meta3: {},
+            meta4: ['a', 'b', 'c']
+        };
+
+        const output = {
+            'metadata.meta4': ['a', 'b', 'c'],
+            'metadata.meta3': {},
+            'metadata.meta2': 2,
+            'metadata.meta1': ''
+        };
+
+        const res = this._filesManager['_prepareUpdateObject'](input);
+        unit.string(JSON.stringify(res)).isEqualTo(JSON.stringify(output));
+    }
+
+    // @test('- update')
+    // update(done) {
+    //     this._modelMock.findOne.returns(Promise.resolve(file));
+
+
+
+
+
+    //     const readStream = new Readable();
+    //     readStream.push('helloworld');
+    //     readStream.push(null);
+    //     unit.stub(this._bucketManager, 'getAdapter').returns({
+    //         getObject: () => Observable.of(readStream)
+    //     });
+    //     const filename = 'helloworld.txt';
+    //     unit.stub(this._filesManager, 'findByFilename').returns(Observable.of({ filename }));
+    //     const obs = this._filesManager.download(filename);
+    //     obs.subscribe(_ => {
+    //         unit.object(_).isInstanceOf(Readable);
+    //         done();
+    //     }, err => done(err));
+    // }
 
 }

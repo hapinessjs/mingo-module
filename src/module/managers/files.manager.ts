@@ -64,7 +64,7 @@ export class FilesManager {
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
                 Observable.of(_)
             )
-            .flatMap(_ => this.upload(input, filename, content_type, metadata || {}));
+            .flatMap(_ => this.upload(input, filename, content_type, metadata));
     }
 
     /**
@@ -168,7 +168,7 @@ export class FilesManager {
      *
      * @param input Object to reformat
      */
-    private _prepareUpdateObject(input: Object): Object {
+    private _prepareUpdateObject(input: { [key: string]: any }): { [key: string]: any} {
         return Object.entries(input).reduce((acc, [key, value]) => Object.assign({ [`metadata.${key}`]: value }, acc), {});
     }
 
