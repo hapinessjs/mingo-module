@@ -280,27 +280,96 @@ export class FilesManagerUnitTest {
         unit.string(JSON.stringify(res)).isEqualTo(JSON.stringify(output));
     }
 
-    // @test('- update')
-    // update(done) {
-    //     this._modelMock.findOne.returns(Promise.resolve(file));
+    @test('- updateByFilename')
+    updateByFilename(done) {
+        const filename = 'helloworld.txt';
+        const updatedFile = {
+            filename,
+            content_type: 'application/octet-stream',
+            metadata: { 'metadata.meta1': 'meta1' },
+            size: 42,
+            created_at: new Date(),
+            updated_at: new Date(),
+            md5: new Date().getTime(),
+        };
 
+        this._modelMock.findOneAndUpdate.returns(Promise.resolve(updatedFile));
 
+        unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
 
+        this._filesManager.updateByFilename(filename, { meta1: 'meta1' })
+            .subscribe(_ => {
+                unit.string(JSON.stringify(_)).isEqualTo(JSON.stringify(updatedFile));
+                unit.assert(this._modelMock.findOneAndUpdate.calledOnce);
+                done();
+            }, err => done(err));
+    }
 
+    @test('- updateByFilename: given file to update does not exist')
+    updateByFilenameWithNonexistantFile(done) {
+        const filename = 'helloworld.txt';
+        unit.stub(this._filesManager, 'exists').returns(Observable.of(false));
+        const obs = this._filesManager.updateByFilename(filename, {});
+        obs.subscribe(_ => done(new Error('Should fail')), err => done());
+    }
 
-    //     const readStream = new Readable();
-    //     readStream.push('helloworld');
-    //     readStream.push(null);
-    //     unit.stub(this._bucketManager, 'getAdapter').returns({
-    //         getObject: () => Observable.of(readStream)
-    //     });
-    //     const filename = 'helloworld.txt';
-    //     unit.stub(this._filesManager, 'findByFilename').returns(Observable.of({ filename }));
-    //     const obs = this._filesManager.download(filename);
-    //     obs.subscribe(_ => {
-    //         unit.object(_).isInstanceOf(Readable);
-    //         done();
-    //     }, err => done(err));
-    // }
+    @test('- removeByFilename')
+    removeByFilename(done) {
+        const filename = 'helloworld.txt';
+        const removedFile = {
+            filename,
+            content_type: 'application/octet-stream',
+            metadata: { 'metadata.meta1': 'meta1' },
+            size: 42,
+            created_at: new Date(),
+            updated_at: new Date(),
+            md5: new Date().getTime(),
+        };
 
+        const existsStub = unit.stub(this._filesManager, 'exists');
+        existsStub.returns(Observable.of(true));
+
+        const removeFileStub = unit.stub(this._bucketManager, 'removeFile');
+        removeFileStub.returns(Observable.of(true));
+
+        this._modelMock.findOneAndRemove.returns(Promise.resolve(removedFile));
+
+        this._filesManager.removeByFilename(filename)
+            .subscribe(_ => {
+                unit.string(JSON.stringify(_)).isEqualTo(JSON.stringify(removedFile));
+                unit.assert(this._modelMock.findOneAndRemove.calledOnce);
+                unit.assert(existsStub.calledOnce);
+                unit.assert(removeFileStub.calledOnce);
+                done();
+            }, err => done(err));
+    }
+
+    @test('- removeByFilename: given file to remove does not exist in database')
+    removeByFilenameWithNonexistantFileInDB(done) {
+        const filename = 'helloworld.txt';
+        unit.stub(this._filesManager, 'exists').returns(Observable.of(false));
+
+        this._filesManager.removeByFilename(filename)
+            .subscribe(_ => done(new Error('Should fail')), err => {
+                unit.object(err).hasProperty('data');
+                unit.object(err.data).hasProperty('key');
+                unit.string(err.data.key).isEqualTo('E_CANNOT_REMOVE_HELLOWORLD_TXT__FILE_DOES_NOT_EXIST_');
+                done();
+            });
+    }
+
+    @test('- removeByFilename: given file to remove does not exist in the bucket')
+    removeByFilenameWithNonexistantFileInBucket(done) {
+        const filename = 'helloworld.txt';
+        unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
+        unit.stub(this._bucketManager, 'removeFile').returns(Observable.of(false));
+
+        this._filesManager.removeByFilename(filename)
+            .subscribe(_ => done(new Error('Should fail')), err => {
+                unit.object(err).hasProperty('data');
+                unit.object(err.data).hasProperty('key');
+                unit.string(err.data.key).isEqualTo('E_UNABLE_TO_REMOVE_FILE_HELLOWORLD_TXT');
+                done();
+            });
+    }
 }

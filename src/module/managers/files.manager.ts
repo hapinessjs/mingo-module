@@ -140,6 +140,7 @@ export class FilesManager {
      * @param update Metadata update object
      * @param options Mongo update options
      */
+    /* istanbul ignore next */
     update(query: Object, update: { [key: string]: any }, options: ModelUpdateOptions): Observable<any> {
         return Observable.fromPromise(this._getDocument()
             .update(query, { $set: this._prepareUpdateObject(update) }, options));
@@ -153,9 +154,15 @@ export class FilesManager {
      * @param options Mongo update options
      */
     updateByFilename(filename: string, update: { [key: string]: any }): Observable<MingoFileDocumentInterface> {
-        return Observable
-            .fromPromise(this._getDocument()
-            .findOneAndUpdate({ filename }, { $set: this._prepareUpdateObject(update) }, { new: true, upsert: false }));
+        return this.exists(filename)
+            .flatMap(_ => !_ ?
+                Observable.throw(Biim.notFound(`Cannot update ${filename}. File does not exist.`)) :
+                Observable.fromPromise(this._getDocument()
+                    .findOneAndUpdate({ filename },
+                        { $set: this._prepareUpdateObject(update) },
+                        { new: true, upsert: false }
+                    ))
+            );
      }
 
     /**
@@ -172,14 +179,14 @@ export class FilesManager {
         return Object.entries(input).reduce((acc, [key, value]) => Object.assign({ [`metadata.${key}`]: value }, acc), {});
     }
 
-
     /**
      * Remove documents from db and minio
      *
      * @param query Mongo query object
      * @param options Mongo options object
      */
-    remove(query: Object, options?: Object): Observable<any> {
+    /* istanbul ignore next */
+    remove(query: { [key: string]: any }, options?: Object): Observable<MingoFileDocumentInterface[]> {
         return this.find(query, ['filename'], options)
             .map(files => files.map(file => this.removeByFilename(file.filename)))
             .flatMap(files => Observable.from(files))
@@ -189,10 +196,10 @@ export class FilesManager {
 
     removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
         return this.exists(filename)
-            .flatMap(_ => _ ?
-                Observable.of(_) :
-                Observable.throw(Biim.notFound(`${filename} does not exist.`)))
-            .flatMap(_ => Observable.fromPromise(this._getDocument().findOneAndRemove({ filename })))
+            .flatMap(_ => !_ ?
+                Observable.throw(Biim.notFound(`Cannot remove ${filename}. File does not exist.`)) :
+                Observable.fromPromise(this._getDocument().findOneAndRemove({ filename }))
+            )
             .flatMap(file =>
                 this._bucketService
                     .removeFile(filename)
