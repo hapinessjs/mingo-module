@@ -69,6 +69,7 @@
     },
     "homepage": "https://github.com/hapinessjs/empty-module#readme",
     "dependencies": {
+        "@hapiness/biim": "^1.4.0",
         "@hapiness/config": "~1.1.0",
         "@hapiness/minio": "~1.0.0",
         "@hapiness/mongo": "~1.1.1",

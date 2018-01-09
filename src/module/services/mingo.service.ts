@@ -1,18 +1,28 @@
-import {MinioService} from '@hapiness/minio';
-import {MongoClientService} from '@hapiness/mongo';
+import { MongoClientService } from '@hapiness/mongo';
 import { FilesManager } from '../managers/files.manager';
 import { BucketManager } from '../managers/bucket.manager';
-import { MinioBucketRegion } from '@hapiness/minio';
-import { Injectable } from '@hapiness/core';
+import { MinioService, MinioBucketRegion } from '@hapiness/minio';
+import { Injectable, Inject } from '@hapiness/core';
+// import { MingoExt } from '../mingo.extension';
 
 @Injectable()
 export class MingoService {
 
-  constructor(private _mongoClientService: MongoClientService, private _minioService: MinioService) {}
+    private _managers: { [key: string]: FilesManager } = {};
 
-  fromBucket(name: string, region?: MinioBucketRegion) {
-    const bucketManager = new BucketManager(this._minioService).setName(name).setRegion(region);
-    return new FilesManager(bucketManager, this._mongoClientService);
-  }
+    constructor(
+        private _mongoClientService: MongoClientService,
+        private _minioService: MinioService
+    ) { }
 
+    fromBucket(name: string, region?: MinioBucketRegion): FilesManager {
+        const key = `${name}_${region || ''}`;
+        if (this._managers[key]) {
+            return this._managers[key];
+        }
+
+        const bucketManager = new BucketManager(this._minioService).setName(name).setRegion(region);
+        this._managers[key] = new FilesManager(bucketManager, this._mongoClientService);
+        return this._managers[key];
+    }
 }
