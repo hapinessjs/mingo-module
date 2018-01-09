@@ -72,7 +72,7 @@
         "@hapiness/biim": "^1.4.0",
         "@hapiness/config": "~1.1.0",
         "@hapiness/minio": "~1.0.0",
-        "@hapiness/mongo": "~1.1.1",
+        "@hapiness/mongo": "^1.1.1",
         "@types/node": "^8.0.46",
         "mongoose": "~4.13.7"
     },

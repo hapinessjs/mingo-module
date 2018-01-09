@@ -11,7 +11,15 @@ Hapiness.bootstrap(ApplicationModule, [
             {
                 name: 'mongoose',
                 config: {
-                    url: Config.get('mongodb.url')
+                    url: Config.get('mongodb.url'),
+                    connectionName: 'mingo'
+                }
+            },
+            {
+                name: 'mongoose-gridfs',
+                config: {
+                    url: Config.get('mongodb.url'),
+                    connectionName: 'gridfs'
                 }
             }
         ]

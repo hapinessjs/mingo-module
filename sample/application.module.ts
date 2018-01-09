@@ -15,7 +15,7 @@ const debug = require('debug')('hapiness:mingo-module')
     imports: [
         MongoModule,
         MinioModule,
-        MingoModule
+        MingoModule.setConfig({ db: { connectionName: 'mingo' } })
     ],
     providers: [
         MingoService
@@ -38,7 +38,7 @@ export class ApplicationModule implements OnStart {
             .do(_ => debug(`exists after create _ ==> `, _))
             .flatMap(_ => fb().findByFilename('package.json'))
             .do(_ => debug(`findByFilename _ ==> `, _))
-            .flatMap(_ => fb().updateByFilename('package.json', { toto: 'titi' }))
+            .flatMap(_ => fb().updateByFilename('package.json', { meta1: 'metadata' }))
             .do(_ => debug(`updateByFilename _ ==> `, _))
             .flatMap(_ => fb().exists('package.json'))
             .do(_ => debug(`exists after update _ ==> `, _))
@@ -58,7 +58,8 @@ export class ApplicationModule implements OnStart {
                             error => debug(`error on remove : `, error),
                             () => debug(`done`));
                 },
-                () => process.exit(0));
-    }
+                () => process.exit(0)
+            );
+        }
 
 }

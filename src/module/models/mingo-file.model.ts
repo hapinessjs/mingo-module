@@ -1,5 +1,8 @@
 import { Model, MongoClientService, MongoModel } from '@hapiness/mongo';
+import { MingoConfig, MINGO_MODULE_CONFIG } from '../interfaces/mingo-config.interface';
+import { Inject, Optional } from '@hapiness/core';
 
+/* istanbul ignore next */
 @MongoModel({
     adapter: 'mongoose',
     collection: 'mingo.files'
@@ -8,8 +11,14 @@ export class MingoFileModel extends Model {
 
     readonly schema;
 
-    constructor(private mongoClientService: MongoClientService) {
+    constructor(
+        private mongoClientService: MongoClientService,
+        @Optional() @Inject(MINGO_MODULE_CONFIG) private config: MingoConfig
+    ) {
         super(MingoFileModel);
+
+        const connectionName = this.config && this.config.db && this.config.db.connectionName || null;
+        this.connectionOptions.options = Object.assign({}, this.connectionOptions.options, { connectionName });
 
         const dao = this.mongoClientService.getDao(this.connectionOptions);
 

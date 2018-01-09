@@ -6,6 +6,7 @@ import { FilesManager } from '../../../src/module/managers/files.manager';
 import { BucketManager } from '../../../src/module/managers/bucket.manager';
 import { MinioServiceMock } from '../../mocks/index';
 import { Readable } from 'stream';
+import { MingoConfig } from '../../../src';
 
 @suite('- Unit Test FilesManager')
 export class FilesManagerUnitTest {
@@ -13,6 +14,8 @@ export class FilesManagerUnitTest {
     private _bucketManager: BucketManager;
     private _filesManager: FilesManager;
     private _modelMock: any;
+    private _mongoMock: any;
+    private _configMock: MingoConfig = {};
 
     before() {
         this._modelMock = {
@@ -22,23 +25,38 @@ export class FilesManagerUnitTest {
             update: unit.stub().returns(Promise.resolve()),
             findOneAndRemove: unit.stub().returns(Promise.resolve()),
         };
-        const mongoMock = {
+        this._mongoMock = {
             getModel: () => this._modelMock
         };
+
         this._bucketManager = new BucketManager(<any>MinioServiceMock);
-        this._filesManager = new FilesManager(this._bucketManager, <any>mongoMock);
+        this._filesManager = new FilesManager(this._bucketManager, this._mongoMock, this._configMock);
     }
 
     after() {
         this._modelMock = undefined;
         this._bucketManager = undefined;
         this._filesManager = undefined;
+        this._configMock = {};
     }
 
     @test('- _getDocument')
     getDocument() {
         unit.function(this._filesManager['_getDocument']);
         unit.object(this._filesManager['_getDocument']()).is(this._modelMock);
+    }
+
+    @test('- _getDocument: retreive options\' connectionName')
+    getDocumentWithOptions(done) {
+        const connectionName = { connectionName: 'test' };
+        this._configMock = { db: connectionName };
+        const getModelSpy = unit.spy(this._mongoMock, 'getModel');
+        this._filesManager = new FilesManager(this._bucketManager, this._mongoMock, this._configMock);
+
+        this._filesManager['_getDocument']();
+        unit.string(JSON.stringify(getModelSpy.getCalls()[0].args[0]))
+            .isEqualTo(JSON.stringify(Object.assign({ adapter: 'mongoose'}, { options: connectionName })))
+        done();
     }
 
     @test('- exists: yes')

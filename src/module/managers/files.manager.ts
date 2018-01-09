@@ -1,19 +1,28 @@
 import { Observable } from 'rxjs/Observable';
 import { Model, ModelUpdateOptions } from 'mongoose';
-import { Biim } from '@hapiness/biim';
 import { MongoClientService } from '@hapiness/mongo';
+import { Inject, Optional, Injectable } from '@hapiness/core';
+import { Biim } from '@hapiness/biim';
 import { MingoFileModel } from '../models/mingo-file.model';
 import { BucketManager } from './bucket.manager';
-import { MingoFileDocumentInterface, MingoFileInterface, UploadFileType } from '../interfaces';
+import {
+    MingoFileDocumentInterface, MingoFileInterface, UploadFileType, MingoConfig, MINGO_MODULE_CONFIG
+} from '../interfaces';
 
+@Injectable()
 export class FilesManager {
     constructor(
         private _bucketService: BucketManager,
-        private _mongoClientService: MongoClientService
+        private _mongoClientService: MongoClientService,
+        @Optional() @Inject(MINGO_MODULE_CONFIG) private _config: MingoConfig
     ) { }
 
     protected _getDocument(): Model<MingoFileDocumentInterface> {
-        return this._mongoClientService.getModel({ adapter: 'mongoose' }, MingoFileModel);
+        const options = (this._config && this._config.db && this._config.db.connectionName) ?
+            { connectionName: this._config.db.connectionName } :
+            null;
+
+        return this._mongoClientService.getModel({ adapter: 'mongoose', options }, MingoFileModel);
     }
 
     /**
@@ -58,13 +67,13 @@ export class FilesManager {
      * @param content_type Mime type
      * @param metadata Custom object to store informations about the file
      */
-    create(input: UploadFileType, filename, content_type?: string, metadata: { [key: string]: any} = {}): Observable<MingoFileInterface> {
+    create(input: UploadFileType, filename, content_type?: string, metadata?: { [key: string]: any}): Observable<MingoFileInterface> {
         return this.exists(filename)
             .flatMap(_ => !!_ ?
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
                 Observable.of(_)
             )
-            .flatMap(_ => this.upload(input, filename, content_type, metadata));
+            .flatMap(_ => this.upload(input, filename, content_type, metadata || {}));
     }
 
     /**
