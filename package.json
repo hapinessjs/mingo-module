@@ -1,0 +1,101 @@
+{
+    "name": "@hapiness/mingo",
+    "version": "1.0.0",
+    "description": "Manage files using minio as file storage and mongodb for metadata",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "private": false,
+    "scripts": {
+        "test": "make test",
+        "pretest": "make pretest",
+        "coveralls": "make coveralls",
+        "packaging": "make packaging",
+        "prebuild": "make pretest && make test && make clean",
+        "build": "make tsc",
+        "postbuild": "make packaging"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/hapinessjs/empty-module.git"
+    },
+    "keywords": [
+        "HapiJS",
+        "Hapi",
+        "Hapiness",
+        "Framework",
+        "NodeJS",
+        "Node",
+        "HTTP",
+        "API",
+        "REST",
+        "Streams",
+        "Async",
+        "Decorator",
+        "RxJS",
+        "Rx",
+        "ReactiveX",
+        "Observable",
+        "Observer",
+        "Module",
+        "ES2015",
+        "ES2016",
+        "ES2017",
+        "ES6",
+        "ES7",
+        "ES8",
+        "Typescript"
+    ],
+    "contributors": [
+        {
+            "name": "Julien Fauville",
+            "url": "https://github.com/Juneil"
+        },
+        {
+            "name": "Antoine Gomez",
+            "url": "https://github.com/antoinegomez"
+        },
+        {
+            "name": "Sébastien Ritz",
+            "url": "https://github.com/reptilbud"
+        },
+        {
+            "name": "Nicolas Jessel",
+            "url": "https://github.com/njl07"
+        }
+    ],
+    "license": "SEE LICENSE IN https://github.com/hapinessjs/empty-module/blob/master/LICENSE.md",
+    "bugs": {
+        "url": "https://github.com/hapinessjs/empty-module/issues"
+    },
+    "homepage": "https://github.com/hapinessjs/empty-module#readme",
+    "dependencies": {
+        "@hapiness/config": "~1.1.0",
+        "@hapiness/minio": "~1.0.0",
+        "@hapiness/mongo": "~1.1.1",
+        "@types/node": "^8.0.46",
+        "debug": "^3.1.0",
+        "mongoose": "~4.13.7"
+    },
+    "devDependencies": {
+        "@hapiness/core": "~1.3.0",
+        "@types/fs-extra": "^4.0.2",
+        "coveralls": "^3.0.0",
+        "fs-extra": "^4.0.2",
+        "istanbul": "^1.1.0-alpha.1",
+        "mocha": "^3.4.2",
+        "mocha-typescript": "^1.1.11",
+        "rimraf": "^2.6.2",
+        "rxjs": "~5.5.5",
+        "ts-node": "^3.3.0",
+        "tslint": "^5.8.0",
+        "typescript": "^2.5.3",
+        "unit.js": "^2.0.0"
+    },
+    "peerDependencies": {
+        "@hapiness/core": "^1.1.0",
+        "rxjs": "^5.5.0"
+    },
+    "engines": {
+        "node": ">=7.0.0"
+    }
+}
