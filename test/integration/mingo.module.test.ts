@@ -8,7 +8,6 @@ import { test, suite } from 'mocha-typescript';
  * @see http://unitjs.com/
  */
 import * as unit from 'unit.js';
-// import * as mongoose from 'mongoose';
 
 import { Hapiness, HapinessModule, OnStart } from '@hapiness/core';
 import { MongoModule, MongoClientExt, HapinessMongoAdapter } from '@hapiness/mongo';
