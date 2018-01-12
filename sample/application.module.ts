@@ -61,5 +61,4 @@ export class ApplicationModule implements OnStart {
                 () => process.exit(0)
             );
         }
-
 }
