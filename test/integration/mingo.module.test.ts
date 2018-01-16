@@ -101,7 +101,7 @@ export class MingoModuleTest {
         Hapiness.bootstrap(ApplicationModule, [
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'endpoint.in.tdw',
+                    endPoint: 'endpoint.minio.tld',
                     port: 9000,
                     secure: false,
                     accessKey: 'accessKey',
@@ -178,7 +178,7 @@ export class MingoModuleTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'endpoint.in.tdw',
+                    endPoint: 'endpoint.minio.tld',
                     port: 9000,
                     secure: false,
                     accessKey: 'accessKey',
@@ -204,7 +204,7 @@ export class MingoModuleTest {
             imports: [
                 MongoModule,
                 MinioModule,
-                MingoModule
+                MingoModule.setConfig({ db: { connectionName: 'mingo' } })
             ],
             providers: [
                 MingoService
@@ -220,7 +220,15 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017'
+                            url: 'mongodb://localhost:27017',
+                            db: 'db1'
+                        }
+                    },
+                    {
+                        name: 'mongoose',
+                        config: {
+                            url: 'mongodb://localhost:27017',
+                            db: 'db2'
                         }
                     },
                     {
@@ -233,7 +241,7 @@ export class MingoModuleTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'endpoint.in.tdw',
+                    endPoint: 'endpoint.minio.tld',
                     port: 9000,
                     secure: false,
                     accessKey: 'accessKey',
@@ -244,7 +252,7 @@ export class MingoModuleTest {
         ])
         .catch(err => {
             unit.string(err).isEqualTo('@hapiness/mongo needs to be set up & need a mongoose adapter for mingo to work.');
-            return done();
+            done();
         });
     }
 
@@ -265,8 +273,7 @@ export class MingoModuleTest {
             ],
             exports: []
         })
-        class ApplicationModule {
-        }
+        class ApplicationModule { }
 
         Hapiness.bootstrap(ApplicationModule, [
             MongoClientExt.setConfig({
@@ -276,6 +283,13 @@ export class MingoModuleTest {
                         config: {
                             url: 'mongodb://localhost:27017',
                             connectionName: 'mingo'
+                        }
+                    },
+                    {
+                        name: 'mongoose',
+                        config: {
+                            url: 'mongodb://localhost:27017',
+                            connectionName: 'mongoose2'
                         }
                     },
                     {
@@ -289,7 +303,7 @@ export class MingoModuleTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'endpoint.in.tdw',
+                    endPoint: 'endpoint.minio.tld',
                     port: 9000,
                     secure: false,
                     accessKey: 'accessKey',
@@ -300,7 +314,7 @@ export class MingoModuleTest {
         ])
         .catch(err => {
             unit.string(err).isEqualTo('@hapiness/mongo needs to be set up & need a mongoose adapter for mingo to work.');
-            return done();
+            done();
         });
     }
 
@@ -348,7 +362,7 @@ export class MingoModuleTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'endpoint.in.tdw',
+                    endPoint: 'endpoint.minio.tld',
                     port: 9000,
                     secure: false,
                     accessKey: 'accessKey',

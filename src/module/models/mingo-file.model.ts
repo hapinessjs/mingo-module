@@ -2,7 +2,6 @@ import { Model, MongoClientService, MongoModel } from '@hapiness/mongo';
 import { MingoConfig, MINGO_MODULE_CONFIG } from '../interfaces/mingo-config.interface';
 import { Inject, Optional } from '@hapiness/core';
 
-/* istanbul ignore next */
 @MongoModel({
     adapter: 'mongoose',
     collection: 'mingo.files'
