@@ -6,7 +6,7 @@
     "types": "index.d.ts",
     "private": false,
     "scripts": {
-        "test": "make test",
+        "test": "NODE_ENV=test make test",
         "pretest": "make pretest",
         "coveralls": "make coveralls",
         "packaging": "make packaging",
@@ -76,7 +76,6 @@
     "homepage": "https://github.com/hapinessjs/mingo-module#readme",
     "dependencies": {
         "@hapiness/biim": "^1.4.0",
-        "@hapiness/config": "^1.1.0",
         "@types/node": "^9.3.0"
     },
     "devDependencies": {
@@ -89,6 +88,7 @@
         "fs-extra": "^5.0.0",
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^4.1.0",
+        "mocha-prepare": "^0.1.0",
         "mocha-typescript": "^1.1.12",
         "rimraf": "^2.6.2",
         "rxjs": "^5.5.6",

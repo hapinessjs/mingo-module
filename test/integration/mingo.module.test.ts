@@ -1,4 +1,3 @@
-
 /**
  * @see https://github.com/pana-cc/mocha-typescript
  */
@@ -14,12 +13,30 @@ import { MongoModule, MongoClientExt, HapinessMongoAdapter } from '@hapiness/mon
 import { MinioModule, MinioExt } from '@hapiness/minio';
 import { MingoModule, MingoService } from '../../src';
 import { Observable } from 'rxjs';
+import { ConnectionMock, MongooseMockInstance, GridFsMockInstance } from '../mocks';
 
 @suite('- Integration MingoModule test file')
 export class MingoModuleTest {
+    private _mockConnection: ConnectionMock;
+    private _gridfsMock: any;
+
+    before() {
+        this._mockConnection = MongooseMockInstance.mockCreateConnection();
+        this._gridfsMock = GridFsMockInstance.mockGridFsStream();
+    }
+
+    after() {
+        MongooseMockInstance.restore();
+        GridFsMockInstance.restore();
+
+        this._mockConnection = undefined;
+        this._gridfsMock = undefined;
+        this._gridfsMock = this._gridfsMock; // remove warning
+    }
 
     @test('Mingo module fail to load because no minio manager have been set up')
     startUpFailWhenNoMinioManagerFound(done) {
+        this._mockConnection.emitAfter('connected', 400);
 
         @HapinessModule({
             version: '1.0.0',
@@ -34,8 +51,7 @@ export class MingoModuleTest {
             ],
             exports: []
         })
-        class ApplicationModule {
-        }
+        class ApplicationModule { }
 
         Hapiness.bootstrap(ApplicationModule, [
             MongoClientExt.setConfig({
@@ -43,23 +59,24 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
-                            connectionName: 'plop'
+                            url: 'mongodb://localhost:27017',
+                            connectionName: 'minio'
                         }
                     },
                     {
                         name: 'mongoose-gridfs',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
-                            connectionName: 'toto'
+                            url: 'mongodb://localhost:27017',
+                            connectionName: 'gridfs'
                         }
                     }
                 ]
             })
         ])
+        .then(() => done(new Error('Should not succeed')))
         .catch(err => {
             unit.string(err).isEqualTo('@hapiness/minio needs to be set up for mingo to work.');
-            return done();
+            done();
         });
     }
 
@@ -70,7 +87,6 @@ export class MingoModuleTest {
             version: '1.0.0',
             declarations: [],
             imports: [
-                MongoModule,
                 MinioModule,
                 MingoModule
             ],
@@ -94,9 +110,10 @@ export class MingoModuleTest {
                 default_region: 'default'
             })
         ])
+        .then(() => done(new Error('Should not succeed')))
         .catch(err => {
             unit.string(err).isEqualTo('@hapiness/mongo needs to be set up & need a mongoose adapter for mingo to work.');
-            return done();
+            done();
         });
     }
 
@@ -153,7 +170,7 @@ export class MingoModuleTest {
                     {
                         name: 'custom',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test'
+                            url: 'mongodb://localhost:27017'
                         }
                     }
                 ],
@@ -179,6 +196,7 @@ export class MingoModuleTest {
 
     @test('Mingo module fail to load because multiple mongoose adapter have been configured without conectionName')
     startUpFailWhenMultipleMongooseAdapterFoundWithoutConnectionName(done) {
+        this._mockConnection.emitAfter('connected', 400);
 
         @HapinessModule({
             version: '1.0.0',
@@ -202,13 +220,13 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test'
+                            url: 'mongodb://localhost:27017'
                         }
                     },
                     {
                         name: 'mongoose-gridfs',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test'
+                            url: 'mongodb://localhost:27017'
                         }
                     }
                 ]
@@ -232,6 +250,7 @@ export class MingoModuleTest {
 
     @test('Mingo module fail to load because Mingo module configuration is missing with multiple mongoose adapter.')
     startUpFailBecauseNoMingoModuleConfigurationWithMultipleMongooseAdapter(done) {
+        this._mockConnection.emitAfter('connected', 400);
 
         @HapinessModule({
             version: '1.0.0',
@@ -255,14 +274,14 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
+                            url: 'mongodb://localhost:27017',
                             connectionName: 'mingo'
                         }
                     },
                     {
                         name: 'mongoose-gridfs',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
+                            url: 'mongodb://localhost:27017',
                             connectionName: 'nope'
                         }
                     }
@@ -287,6 +306,7 @@ export class MingoModuleTest {
 
     @test('Mingo module load successfuly with multiple mongoose adapter have been configured with a conectionName')
     startUpSuccessWhenMultipleMongooseAdapterFoundWithConnectionName(done) {
+        this._mockConnection.emitAfter('connected', 400);
 
         @HapinessModule({
             version: '1.0.0',
@@ -313,14 +333,14 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
+                            url: 'mongodb://localhost:27017',
                             connectionName: 'mingo'
                         }
                     },
                     {
                         name: 'mongoose-gridfs',
                         config: {
-                            url: 'mongodb://tdw01.dev01.in.tdw:27017/mingo_module_test',
+                            url: 'mongodb://localhost:27017',
                             connectionName: 'nope'
                         }
                     }
