@@ -23,6 +23,8 @@ services:
     networks:
       - unit-test
     command: npm run build
+    volumes:
+      - "./coverage:/usr/src/app/coverage"
     depends_on:
       minio:
         condition: service_healthy
