@@ -63,9 +63,9 @@ class MyService {
 
 ## Change History
 
-* v1.0.0 (2018-01-xx)
+* v1.0.0 (2018-01-18)
     * First release
-    
+
 [Back to top](#table-of-contents)
 
 ## Maintainers
