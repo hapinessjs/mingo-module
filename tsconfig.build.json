@@ -1,0 +1,18 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist/commonjs",
+        "rootDir": "./src",
+        "declarationDir": "./dist",
+        "types": [
+            "node"
+        ]
+    },
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test",
+        "tools",
+        "sample"
+    ]
+}

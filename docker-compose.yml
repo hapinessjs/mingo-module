@@ -1,0 +1,33 @@
+version: "2.1"
+
+services:
+  minio:
+    image: minio/minio
+    command: server /export
+    ports:
+      - "9000:9000"
+    volumes:
+      - "./test/minio-tmp:/export"
+    environment:
+      - "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"
+      - "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    networks:
+      - unit-test
+    healthcheck:
+      test: ["CMD-SHELL", "curl -I -s -L http://127.0.0.1:9000 || exit 1"]
+      interval: 5s
+      retries: 10
+
+  mingo:
+    build: .
+    networks:
+      - unit-test
+    command: npm run build
+    volumes:
+      - "./coverage:/usr/src/app/coverage"
+    depends_on:
+      minio:
+        condition: service_healthy
+
+networks:
+  unit-test:
