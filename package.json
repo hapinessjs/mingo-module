@@ -10,8 +10,9 @@
         "pretest": "make pretest",
         "coveralls": "make coveralls",
         "packaging": "make packaging",
-        "prebuild": "make pretest && make clean",
+        "prebuild": "make pretest && make test && make clean",
         "build": "make tsc",
+        "build-lite": "make pretest && make clean && make tsc && make packaging",
         "postbuild": "make packaging"
     },
     "repository": {
