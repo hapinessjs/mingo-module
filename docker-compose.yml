@@ -9,8 +9,8 @@ services:
     volumes:
       - "./test/minio-tmp:/export"
     environment:
-      - "MINIO_ACCESS_KEY=ORNX3DIUD58PPQ83C4NT"
-      - "MINIO_SECRET_KEY=rkAuvUhTebW9Up4GZGJPvlYZ5JHo5Y98e6svZHYa"
+      - "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"
+      - "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     networks:
       - unit-test
     healthcheck:

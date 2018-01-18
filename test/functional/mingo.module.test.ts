@@ -107,8 +107,8 @@ export class MingoModuleFunctionalTest {
                     endPoint: '172.18.0.2',
                     port: 9000,
                     secure: false,
-                    accessKey: 'ORNX3DIUD58PPQ83C4NT',
-                    secretKey: 'rkAuvUhTebW9Up4GZGJPvlYZ5JHo5Y98e6svZHYa',
+                    accessKey: 'AKIAIOSFODNN7EXAMPLE',
+                    secretKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
                 },
                 default_region: 'us-east-1'
             })
