@@ -1,0 +1,27 @@
+sudo: required
+
+language: node_js
+
+services:
+  - docker
+
+node_js:
+  - "node"
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.18.0
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - docker-compose pull
+  - docker-compose build
+
+script:
+  - docker-compose up --abort-on-container-exit
+after_script:
+  - docker run --rm -e TRAVIS=$TRAVIS -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST -v $(pwd):/usr/src/app -w /usr/src/app mingomodule_mingo npm run coveralls

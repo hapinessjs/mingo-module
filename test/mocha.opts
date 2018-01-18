@@ -1,0 +1,8 @@
+--ui tdd
+--report lcovonly
+--reporter spec
+--recursive
+--require ts-node/register
+--require test/prepare
+--throw-deprecation
+--colors
