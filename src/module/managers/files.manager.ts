@@ -153,7 +153,7 @@ export class FilesManager {
      * @param options Mongo update options
      */
     update(
-        query: { [key: string]: any }, update: { [key: string]: any }, options: ModelUpdateOptions
+        query: { [key: string]: any }, update: { [key: string]: any }, options?: ModelUpdateOptions
     ): Observable<MingoFileDocumentInterface[]> {
         return Observable
             .fromPromise(this._getDocument().update(query, { $set: this._prepareUpdateObject(update) }, options))
