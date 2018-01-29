@@ -17,14 +17,13 @@ import { MinioModule, MinioExt } from '@hapiness/minio';
 import { MingoModule, MingoService } from '../../src';
 import { FilesManager } from '../../src/module/managers/files.manager';
 
-
 @suite('- MingoModule functional test file')
 export class MingoModuleFunctionalTest {
     @test('Mingo module load successfuly and run several commands')
     mingoRunSuccess(done) {
         const fileProperties = [
             { filename: 'package.json' },
-            { content_type: 'json' },
+            { contentType: 'json' },
             { size: fs.lstatSync('./package.json').size },
             { md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex') }
         ];

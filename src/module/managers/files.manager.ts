@@ -37,18 +37,18 @@ export class FilesManager {
      * @param content_type Mime type
      * @param metadata Custom object to store information about the file
      */
-    upload(input: UploadFileType, filename, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
+    upload(input: UploadFileType, filename: string, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this._bucketService
             .createFile(input, filename, null, content_type)
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
                     filename: filename,
                     size: result.size,
-                    content_type: result.contentType,
+                    contentType: result.contentType,
                     created_at: new Date(result.lastModified),
                     updated_at: new Date(result.lastModified),
                     md5: result.etag,
-                    metadata: metadata
+                    metadata: metadata || {}
                 })
             )
             .flatMap(_ => Observable.fromPromise(
@@ -73,7 +73,7 @@ export class FilesManager {
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
                 Observable.of(_)
             )
-            .flatMap(_ => this.upload(input, filename, content_type, metadata || {}));
+            .flatMap(_ => this.upload(input, filename, content_type, metadata));
     }
 
     /**
@@ -108,13 +108,13 @@ export class FilesManager {
      * @param projection Fields to return
      * @param options Mongo find options
      */
-    find(query?: Object, projection?: string | string[], options?: Object): Observable<MingoFileDocumentInterface[]> {
+    find(
+        query?: { [key: string]: any }, projection?: string | string[], options?: { [key: string]: any }
+    ): Observable<MingoFileDocumentInterface[]> {
         const _options = Object.assign({ limit: 10000 }, options);
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
-        return Observable
-            .fromPromise(this._getDocument()
-                .find(query, projectionStr, _options)
-            );
+
+        return Observable.fromPromise(this._getDocument().find(query, projectionStr, _options));
     }
 
     /**
@@ -124,7 +124,9 @@ export class FilesManager {
      * @param projection Fields to return
      * @param options Mongo find options
      */
-    findByFilename(filename: string, projection?: string | string[], options?: Object): Observable<MingoFileDocumentInterface> {
+    findByFilename(
+        filename: string, projection?: string | string[], options?: { [key: string]: any }
+    ): Observable<MingoFileDocumentInterface> {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
         return Observable.fromPromise(this._getDocument().findOne({ filename }, projectionStr, options));
     }
@@ -204,7 +206,9 @@ export class FilesManager {
     }
 
     removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
-        return this.exists(filename)
+        return Observable.of(filename)
+            .flatMap(_ => _ ? Observable.of(filename) : Observable.throw(Biim.badRequest(`No filename provided`)))
+            .flatMap(_ => this.exists(filename))
             .flatMap(_ => !_ ?
                 Observable.throw(Biim.notFound(`Cannot remove ${filename}. File does not exist.`)) :
                 Observable.fromPromise(this._getDocument().findOneAndRemove({ filename }))
