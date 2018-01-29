@@ -151,10 +151,12 @@ export class FilesManager {
      * @param update Metadata update object
      * @param options Mongo update options
      */
-    /* istanbul ignore next */
-    update(query: Object, update: { [key: string]: any }, options: ModelUpdateOptions): Observable<any> {
-        return Observable.fromPromise(this._getDocument()
-            .update(query, { $set: this._prepareUpdateObject(update) }, options));
+    update(
+        query: { [key: string]: any }, update: { [key: string]: any }, options: ModelUpdateOptions
+    ): Observable<MingoFileDocumentInterface[]> {
+        return Observable
+            .fromPromise(this._getDocument().update(query, { $set: this._prepareUpdateObject(update) }, options))
+            .flatMap(_ => this.find(query, null, options));
     }
 
     /**
