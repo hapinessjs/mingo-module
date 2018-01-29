@@ -82,8 +82,9 @@ export class FilesManager {
      * @param filename Filename
      */
     exists(filename: string): Observable<boolean> {
-        return this._bucketService
-            .fileStat(filename)
+        return Observable.of(filename)
+            .flatMap(_ => _ ? Observable.of(filename) : Observable.throw(Biim.badRequest(`No filename provided`)))
+            .flatMap(_ => this._bucketService.fileStat(filename))
             .catch(err => {
                 if (err.code === 'NotFound') {
                     return Observable.of(false);
