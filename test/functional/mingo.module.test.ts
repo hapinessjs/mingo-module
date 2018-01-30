@@ -16,7 +16,8 @@ import { MinioModule, MinioExt } from '@hapiness/minio';
 
 import { MingoModule, MingoService } from '../../src';
 import { FilesManager } from '../../src/module/managers/files.manager';
-
+import { Biim } from '@hapiness/biim';
+import { Observable } from 'rxjs/Observable';
 
 @suite('- MingoModule functional test file')
 export class MingoModuleFunctionalTest {
@@ -24,7 +25,7 @@ export class MingoModuleFunctionalTest {
     mingoRunSuccess(done) {
         const fileProperties = [
             { filename: 'package.json' },
-            { content_type: 'json' },
+            { contentType: 'json' },
             { size: fs.lstatSync('./package.json').size },
             { md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex') }
         ];
@@ -74,6 +75,21 @@ export class MingoModuleFunctionalTest {
                         .bool(_)
                         .isTrue()
                     )
+                    .flatMap(_ => fb().update({ contentType: 'json' }, { meta2: 'json' }))
+                    .do(_ => unit
+                        .array(_)
+                        .contains([{ metadata: { meta1 : 'metadata',  meta2: 'json' } }])
+                    )
+                    .flatMap(_ => fb().exists(null))
+                    .catch(_ => {
+                         unit.object(_).isInstanceOf(Error).is(Biim.badRequest(`No filename provided`));
+                         return Observable.of(null);
+                    })
+                    .flatMap(_ => fb().removeByFilename(null))
+                    .catch(_ => {
+                        unit.object(_).isInstanceOf(Error).is(Biim.badRequest(`No filename provided`));
+                        return Observable.of(null);
+                    })
                     .flatMap(_ => fb().removeByFilename('package.json'))
                     .do(_ => unit.object(_))
                     .flatMap(_ => fb().exists('package.json'))

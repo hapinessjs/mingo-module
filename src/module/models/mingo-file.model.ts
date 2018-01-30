@@ -27,7 +27,7 @@ export class MingoFileModel extends Model {
                     type: String,
                     required: true
                 },
-                content_type: {
+                contentType: {
                     type: String,
                     default: 'application/octet-stream'
                 },
