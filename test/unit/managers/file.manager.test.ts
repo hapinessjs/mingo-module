@@ -112,17 +112,17 @@ export class FilesManagerUnitTest {
     upload(done) {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
-        const content_type = 'text/plain';
+        const contentType = 'text/plain';
         const metadata = { lupulus: { stock: 99, empty: 10 } };
         unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
             size: input.length,
-            contentType: content_type,
+            contentType: contentType,
             etag: new Date().getTime(),
             lastModified: new Date(),
         }));
         const file = {
             filename,
-            content_type,
+            contentType,
             metadata,
             size: input.length,
             created_at: new Date(),
@@ -133,7 +133,7 @@ export class FilesManagerUnitTest {
             toJSON: () => file
         }));
         unit.function(this._filesManager.upload);
-        const obs = this._filesManager.upload(input, filename, content_type, metadata);
+        const obs = this._filesManager.upload(input, filename, contentType, metadata);
         obs.subscribe(_ => {
             unit.object(_).is(file);
             done();
@@ -147,7 +147,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const file = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             metadata: {},
             size: input.length,
             created_at: new Date(),
@@ -185,7 +185,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const file = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             metadata: {},
             size: input.length,
             created_at: new Date(),
@@ -207,14 +207,14 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const file = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             size: input.length,
             created_at: new Date(),
             updated_at: new Date()
         };
         this._modelMock.find.returns(Promise.resolve([file]));
         unit.function(this._filesManager.find);
-        const obs = this._filesManager.find(null, ['filename', 'content_type', 'size', 'created_at', 'updated_at']);
+        const obs = this._filesManager.find(null, ['filename', 'contentType', 'size', 'created_at', 'updated_at']);
         obs.subscribe(_ => {
             unit.array(_).is([file]);
             done();
@@ -227,7 +227,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const file = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             metadata: {},
             size: input.length,
             created_at: new Date(),
@@ -249,12 +249,12 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const file = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             size: input.length
         };
         this._modelMock.findOne.returns(Promise.resolve(file));
         unit.function(this._filesManager.findByFilename);
-        const obs = this._filesManager.findByFilename(filename, ['filename', 'content_type', 'size']);
+        const obs = this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size']);
         obs.subscribe(_ => {
             unit.object(_).is(file);
             done();
@@ -303,7 +303,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const updatedFile = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             metadata: { 'metadata.meta1': 'meta1' },
             size: 42,
             created_at: new Date(),
@@ -336,7 +336,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const removedFile = {
             filename,
-            content_type: 'application/octet-stream',
+            contentType: 'application/octet-stream',
             metadata: { 'metadata.meta1': 'meta1' },
             size: 42,
             created_at: new Date(),
