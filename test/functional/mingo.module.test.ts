@@ -23,12 +23,14 @@ import { Observable } from 'rxjs/Observable';
 export class MingoModuleFunctionalTest {
     @test('Mingo module load successfuly and run several commands')
     mingoRunSuccess(done) {
-        const fileProperties = [
-            { filename: 'package.json' },
-            { contentType: 'json' },
-            { size: fs.lstatSync('./package.json').size },
-            { md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex') }
-        ];
+        const fileProperties = {
+            filename: 'package.json',
+            contentType: 'json',
+            size: fs.lstatSync('./package.json').size,
+            md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex'),
+            created_at: null,
+            updated_at: null
+        };
 
         @HapinessModule({
             version: '1.0.0',
@@ -53,22 +55,26 @@ export class MingoModuleFunctionalTest {
                 }
 
                 fb().create(fs.createReadStream('./package.json'), 'package.json', 'json', null)
+                    .do(_ => Object.assign(fileProperties, { created_at: _.created_at, updated_at: _.updated_at }))
                     .do(_ => unit
                         .object(_)
-                        .contains(...fileProperties)
+                        .is(fileProperties)
                     )
                     .flatMap(_ => fb().exists('package.json'))
                     .do(_ => unit.bool(_).isTrue())
                     .flatMap(_ => fb().findByFilename('package.json'))
                     .do(_ => unit
                         .object(_)
-                        .contains(...fileProperties)
+                        .is(fileProperties)
+                    )
+                    .do(_ => unit
+                        .object(_)
+                        .is(fileProperties)
                     )
                     .flatMap(_ => fb().updateByFilename('package.json', { meta1: 'metadata' }))
                     .do(_ => unit
                         .object(_)
-                        .contains(...fileProperties)
-                        .contains({ metadata: { meta1 : 'metadata' } })
+                        .is(Object.assign({}, fileProperties, { metadata: { meta1 : 'metadata' } }))
                     )
                     .flatMap(_ => fb().exists('package.json'))
                     .do(_ => unit

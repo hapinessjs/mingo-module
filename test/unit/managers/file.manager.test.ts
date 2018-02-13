@@ -17,6 +17,12 @@ export class FilesManagerUnitTest {
     private _mongoMock: any;
     private _configMock: MingoConfig = {};
 
+    private _classMock = {
+        toJSON: function () {
+            return this;
+        }
+    }
+
     before() {
         this._modelMock = {
             findOneAndUpdate: unit.stub().returns(Promise.resolve()),
@@ -183,35 +189,36 @@ export class FilesManagerUnitTest {
     find(done) {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
-        const file = {
+        const file = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             metadata: {},
             size: input.length,
             created_at: new Date(),
             updated_at: new Date(),
-            md5: new Date().getTime(),
-        };
+            md5: new Date().getTime()
+        });
+
         this._modelMock.find.returns(Promise.resolve([file]));
         unit.function(this._filesManager.find);
-        const obs = this._filesManager.find();
-        obs.subscribe(_ => {
-            unit.array(_).is([file]);
-            done();
-        }, err => done(err));
+        this._filesManager.find()
+            .subscribe(_ => {
+                unit.array(_).is([file]);
+                done();
+            }, err => done(err));
     }
 
     @test('- find: with projection as an array')
     findWithProjection(done) {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
-        const file = {
+        const file = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             size: input.length,
             created_at: new Date(),
             updated_at: new Date()
-        };
+        });
         this._modelMock.find.returns(Promise.resolve([file]));
         unit.function(this._filesManager.find);
         const obs = this._filesManager.find(null, ['filename', 'contentType', 'size', 'created_at', 'updated_at']);
@@ -225,7 +232,7 @@ export class FilesManagerUnitTest {
     findByFilename(done) {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
-        const file = {
+        const file = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             metadata: {},
@@ -233,7 +240,7 @@ export class FilesManagerUnitTest {
             created_at: new Date(),
             updated_at: new Date(),
             md5: new Date().getTime(),
-        };
+        });
         this._modelMock.findOne.returns(Promise.resolve(file));
         unit.function(this._filesManager.findByFilename);
         const obs = this._filesManager.findByFilename(filename);
@@ -247,11 +254,11 @@ export class FilesManagerUnitTest {
     findByFilenameWithProjection(done) {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
-        const file = {
+        const file = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             size: input.length
-        };
+        });
         this._modelMock.findOne.returns(Promise.resolve(file));
         unit.function(this._filesManager.findByFilename);
         const obs = this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size']);
@@ -301,7 +308,7 @@ export class FilesManagerUnitTest {
     @test('- updateByFilename')
     updateByFilename(done) {
         const filename = 'helloworld.txt';
-        const updatedFile = {
+        const updatedFile = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             metadata: { 'metadata.meta1': 'meta1' },
@@ -309,7 +316,7 @@ export class FilesManagerUnitTest {
             created_at: new Date(),
             updated_at: new Date(),
             md5: new Date().getTime(),
-        };
+        });
 
         this._modelMock.findOneAndUpdate.returns(Promise.resolve(updatedFile));
 
@@ -334,7 +341,7 @@ export class FilesManagerUnitTest {
     @test('- removeByFilename')
     removeByFilename(done) {
         const filename = 'helloworld.txt';
-        const removedFile = {
+        const removedFile = Object.assign(Object.create(this._classMock), {
             filename,
             contentType: 'application/octet-stream',
             metadata: { 'metadata.meta1': 'meta1' },
@@ -342,7 +349,7 @@ export class FilesManagerUnitTest {
             created_at: new Date(),
             updated_at: new Date(),
             md5: new Date().getTime(),
-        };
+        });
 
         const existsStub = unit.stub(this._filesManager, 'exists');
         existsStub.returns(Observable.of(true));
