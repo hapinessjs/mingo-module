@@ -50,10 +50,17 @@ export class MingoFileModel extends Model {
                 }
             },
             {
-                id: false
+                id: false,
+                versionKey: false
             }
         );
 
-        this.schema.set('toJSON', { virtuals: true });
+        this.schema.set('toJSON', {
+            virtuals: true,
+            transform: function (doc, ret) {
+                delete ret._id;
+                return ret;
+            }
+        });
     }
 }
