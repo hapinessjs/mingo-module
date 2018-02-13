@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/mingo",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Manage files using minio as file storage and mongodb for metadata",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -95,7 +95,7 @@
         "rxjs": "^5.5.6",
         "ts-node": "^3.3.0",
         "tslint": "^5.8.0",
-        "typescript": "^2.6.2",
+        "typescript": "^2.7.1",
         "unit.js": "^2.0.0"
     },
     "peerDependencies": {

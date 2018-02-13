@@ -63,6 +63,8 @@ class MyService {
 
 ## Change History
 
+* v1.1.1 (2018-02-13)
+    * Fix returned object, now doesn't include mongoose metadata
 * v1.1.0 (2018-01-30)
     * Update mingo model
     * Minor code updates
