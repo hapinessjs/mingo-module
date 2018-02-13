@@ -51,14 +51,12 @@ export class MingoFileModel extends Model {
             },
             {
                 id: false,
-                _id: false,
                 versionKey: false
             }
         );
 
         this.schema.set('toJSON', {
             virtuals: true,
-            versionKey: false,
             transform: function (doc, ret) {
                 delete ret._id;
                 return ret;
