@@ -71,11 +71,11 @@ export class FilesManagerUnitTest {
         unit.function(this._filesManager.exists);
         unit.stub(this._bucketManager, 'fileStat').returns(Observable.of({}));
         unit.stub(this._filesManager, 'findByFilename').returns(Observable.of({ filename }));
-        const obs = this._filesManager.exists(filename);
-        obs.subscribe(_ => {
-            unit.bool(_).isTrue();
-            done();
-        }, err => done(err));
+        this._filesManager.exists(filename)
+            .subscribe(_ => {
+                unit.bool(_).isTrue();
+                done();
+            }, err => done(err));
     }
 
     @test('- exists: no')
@@ -84,11 +84,11 @@ export class FilesManagerUnitTest {
         unit.function(this._filesManager.exists);
         unit.stub(this._bucketManager, 'fileStat').returns(Observable.of({}));
         unit.stub(this._filesManager, 'findByFilename').returns(Observable.of(null));
-        const obs = this._filesManager.exists(filename);
-        obs.subscribe(_ => {
-            unit.bool(_).isFalse();
-            done();
-        }, err => done(err));
+        this._filesManager.exists(filename)
+            .subscribe(_ => {
+                unit.bool(_).isFalse();
+                done();
+            }, err => done(err));
     }
 
     @test('- exists: no 2')
@@ -96,11 +96,11 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         unit.function(this._filesManager.exists);
         unit.stub(this._bucketManager, 'fileStat').returns(Observable.throw({ code: 'NotFound' }));
-        const obs = this._filesManager.exists(filename);
-        obs.subscribe(_ => {
-            unit.bool(_).isFalse();
-            done();
-        }, err => done(err));
+        this._filesManager.exists(filename)
+            .subscribe(_ => {
+                unit.bool(_).isFalse();
+                done();
+            }, err => done(err));
     }
 
     @test('- exists: filestat throw another error than "NotFound"')
@@ -108,10 +108,31 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         unit.function(this._filesManager.exists);
         unit.stub(this._bucketManager, 'fileStat').returns(Observable.throw({ code: 'AnotherError' }));
-        const obs = this._filesManager.exists(filename);
-        obs.subscribe(_ => {
-            done(new Error('Should not be here!'));
-        }, err => done());
+        this._filesManager.exists(filename)
+            .subscribe(_ => {
+                done(new Error('Should not be here!'));
+            }, err => done());
+    }
+
+    @test('- when upload returns null')
+    uploadReturnsNull(done) {
+        const input = Buffer.from('helloworld');
+        const filename = 'helloworld.txt';
+        const contentType = 'text/plain';
+        const metadata = { lupulus: { stock: 99, empty: 10 } };
+        unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
+            size: input.length,
+            contentType: contentType,
+            etag: new Date().getTime(),
+            lastModified: new Date(),
+        }));
+        this._modelMock.findOneAndUpdate = unit.stub().returns(Promise.resolve(null));
+        unit.function(this._filesManager.upload);
+        this._filesManager.upload(input, filename, contentType, metadata)
+            .subscribe(_ => {
+                unit.value(_).is(null);
+                done();
+            }, err => done(err));
     }
 
     @test('- Upload')
@@ -139,11 +160,11 @@ export class FilesManagerUnitTest {
             toJSON: () => file
         }));
         unit.function(this._filesManager.upload);
-        const obs = this._filesManager.upload(input, filename, contentType, metadata);
-        obs.subscribe(_ => {
-            unit.object(_).is(file);
-            done();
-        }, err => done(err));
+        this._filesManager.upload(input, filename, contentType, metadata)
+            .subscribe(_ => {
+                unit.object(_).is(file);
+                done();
+            }, err => done(err));
     }
 
     @test('- Create')
@@ -162,11 +183,11 @@ export class FilesManagerUnitTest {
         };
         unit.stub(this._filesManager, 'exists').returns(Observable.of(false));
         unit.stub(this._filesManager, 'upload').returns(Observable.of(file));
-        const obs = this._filesManager.create(input, filename);
-        obs.subscribe(_ => {
-            unit.object(_).is(file);
-            done();
-        }, err => done(err));
+        this._filesManager.create(input, filename)
+            .subscribe(_ => {
+                unit.object(_).is(file);
+                done();
+            }, err => done(err));
     }
 
     @test('- Create error: already exists')
@@ -175,14 +196,37 @@ export class FilesManagerUnitTest {
         const input = Buffer.from('helloworld');
         const filename = 'helloworld.txt';
         unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
-        const obs = this._filesManager.create(input, filename);
-        obs.subscribe(_ => done(new Error('Cannot be here')),
-            err => {
-                unit.object(err)
-                    .isInstanceOf(Error)
-                    .hasProperty('message', 'File helloworld.txt already exists');
+        this._filesManager.create(input, filename)
+            .subscribe(_ => done(new Error('Cannot be here')),
+                err => {
+                    unit.object(err)
+                        .isInstanceOf(Error)
+                        .hasProperty('message', 'File helloworld.txt already exists');
+                    done();
+                });
+    }
+
+    @test('- find returns null')
+    findReturnsNull(done) {
+        const input = Buffer.from('helloworld');
+        const filename = 'helloworld.txt';
+        const file = Object.assign(Object.create(this._classMock), {
+            filename,
+            contentType: 'application/octet-stream',
+            metadata: {},
+            size: input.length,
+            created_at: new Date(),
+            updated_at: new Date(),
+            md5: new Date().getTime()
+        });
+
+        this._modelMock.find.returns(Promise.resolve([null, null, file, null]));
+        unit.function(this._filesManager.find);
+        this._filesManager.find()
+            .subscribe(_ => {
+                unit.array(_).is([null, null, file, null]);
                 done();
-            });
+            }, err => done(err));
     }
 
     @test('- find')
@@ -221,9 +265,21 @@ export class FilesManagerUnitTest {
         });
         this._modelMock.find.returns(Promise.resolve([file]));
         unit.function(this._filesManager.find);
-        const obs = this._filesManager.find(null, ['filename', 'contentType', 'size', 'created_at', 'updated_at']);
-        obs.subscribe(_ => {
-            unit.array(_).is([file]);
+        this._filesManager.find(null, ['filename', 'contentType', 'size', 'created_at', 'updated_at'])
+            .subscribe(_ => {
+                unit.array(_).is([file]);
+                done();
+            }, err => done(err));
+    }
+
+    @test('- findByFilename returns null')
+    findByFilenameReturnsNull(done) {
+        const filename = 'helloworld.txt';
+        this._modelMock.findOne.returns(Promise.resolve(null));
+        unit.function(this._filesManager.findByFilename);
+        this._filesManager.findByFilename(filename)
+        .subscribe(_ => {
+            unit.value(_).is(null);
             done();
         }, err => done(err));
     }
@@ -243,11 +299,11 @@ export class FilesManagerUnitTest {
         });
         this._modelMock.findOne.returns(Promise.resolve(file));
         unit.function(this._filesManager.findByFilename);
-        const obs = this._filesManager.findByFilename(filename);
-        obs.subscribe(_ => {
-            unit.object(_).is(file);
-            done();
-        }, err => done(err));
+        this._filesManager.findByFilename(filename)
+            .subscribe(_ => {
+                unit.object(_).is(file);
+                done();
+            }, err => done(err));
     }
 
     @test('- findByFilename: with projection as an array')
@@ -261,11 +317,11 @@ export class FilesManagerUnitTest {
         });
         this._modelMock.findOne.returns(Promise.resolve(file));
         unit.function(this._filesManager.findByFilename);
-        const obs = this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size']);
-        obs.subscribe(_ => {
-            unit.object(_).is(file);
-            done();
-        }, err => done(err));
+        this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size'])
+            .subscribe(_ => {
+                unit.object(_).is(file);
+                done();
+            }, err => done(err));
     }
 
     @test('- download')
@@ -278,11 +334,11 @@ export class FilesManagerUnitTest {
         });
         const filename = 'helloworld.txt';
         unit.stub(this._filesManager, 'findByFilename').returns(Observable.of({ filename }));
-        const obs = this._filesManager.download(filename);
-        obs.subscribe(_ => {
-            unit.object(_).isInstanceOf(Readable);
-            done();
-        }, err => done(err));
+        this._filesManager.download(filename)
+            .subscribe(_ => {
+                unit.object(_).isInstanceOf(Readable);
+                done();
+            }, err => done(err));
     }
 
     @test('- _prepareUpdateObject')
@@ -330,12 +386,28 @@ export class FilesManagerUnitTest {
             }, err => done(err));
     }
 
+    @test('- updateByFilename returns null')
+    updateByFilenameReturnsNull(done) {
+        const filename = 'helloworld.txt';
+
+        this._modelMock.findOneAndUpdate.returns(Promise.resolve(null));
+
+        unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
+
+        this._filesManager.updateByFilename(filename, { meta1: 'meta1' })
+            .subscribe(_ => {
+                unit.value(_).is(null);
+                unit.assert(this._modelMock.findOneAndUpdate.calledOnce);
+                done();
+            }, err => done(err));
+    }
+
     @test('- updateByFilename: given file to update does not exist')
     updateByFilenameWithNonexistantFile(done) {
         const filename = 'helloworld.txt';
         unit.stub(this._filesManager, 'exists').returns(Observable.of(false));
-        const obs = this._filesManager.updateByFilename(filename, {});
-        obs.subscribe(_ => done(new Error('Should fail')), err => done());
+        this._filesManager.updateByFilename(filename, {})
+            .subscribe(_ => done(new Error('Should fail')), err => done());
     }
 
     @test('- removeByFilename')
