@@ -1,4 +1,5 @@
 export interface MingoFileInterface {
+    id?: string | any;
     filename: string;
     contentType: string;
     created_at: Date;

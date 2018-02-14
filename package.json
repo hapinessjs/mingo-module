@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/mingo",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Manage files using minio as file storage and mongodb for metadata",
     "main": "commonjs/index.js",
     "types": "index.d.ts",

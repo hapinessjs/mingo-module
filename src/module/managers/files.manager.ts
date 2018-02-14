@@ -42,6 +42,7 @@ export class FilesManager {
             .createFile(input, filename, null, content_type)
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
+                    id: undefined,
                     filename: filename,
                     size: result.size,
                     contentType: result.contentType,
