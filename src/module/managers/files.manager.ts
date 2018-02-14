@@ -55,7 +55,7 @@ export class FilesManager {
                     this._getDocument()
                         .findOneAndUpdate({ filename }, _, { new: true, upsert: true })
                     )
-                    .map<MingoFileDocumentInterface, MingoFileInterface>(file => file.toJSON())
+                    .map<MingoFileDocumentInterface, MingoFileInterface>(file => file ? file.toJSON() : file)
             );
     }
 
@@ -116,7 +116,7 @@ export class FilesManager {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
 
         return Observable.fromPromise(this._getDocument().find(query, projectionStr, _options))
-            .map<MingoFileDocumentInterface[], MingoFileInterface[]>(_ => _.map(__ => __.toJSON()));
+            .map<MingoFileDocumentInterface[], MingoFileInterface[]>(_ => _.map(__ => __ ? __.toJSON() : __));
     }
 
     /**
@@ -132,7 +132,7 @@ export class FilesManager {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection;
 
         return Observable.fromPromise(this._getDocument().findOne({ filename }, projectionStr, options))
-            .map<MingoFileDocumentInterface, MingoFileInterface>(_ => _.toJSON());
+            .map<MingoFileDocumentInterface, MingoFileInterface>(_ => _ ? _.toJSON() : _);
     }
 
     /**
@@ -180,7 +180,7 @@ export class FilesManager {
                         { new: true, upsert: false }
                     ))
             )
-            .map(_ => _.toJSON());
+            .map(_ => _ ? _.toJSON() : _);
      }
 
     /**
