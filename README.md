@@ -63,6 +63,9 @@ class MyService {
 
 ## Change History
 
+* v1.1.2 (2018-02-14)
+    * MingoModel now have an id exposed.
+    * Fix when calling the toJson method but value returned by mongo is null.
 * v1.1.1 (2018-02-13)
     * Fix returned object, now doesn't include mongoose metadata
 * v1.1.0 (2018-01-30)

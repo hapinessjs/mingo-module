@@ -24,6 +24,7 @@ export class MingoModuleFunctionalTest {
     @test('Mingo module load successfuly and run several commands')
     mingoRunSuccess(done) {
         const fileProperties = {
+            id: null,
             filename: 'package.json',
             contentType: 'json',
             size: fs.lstatSync('./package.json').size,
@@ -55,7 +56,7 @@ export class MingoModuleFunctionalTest {
                 }
 
                 fb().create(fs.createReadStream('./package.json'), 'package.json', 'json', null)
-                    .do(_ => Object.assign(fileProperties, { created_at: _.created_at, updated_at: _.updated_at }))
+                    .do(_ => Object.assign(fileProperties, { id: _.id, created_at: _.created_at, updated_at: _.updated_at }))
                     .do(_ => unit
                         .object(_)
                         .is(fileProperties)

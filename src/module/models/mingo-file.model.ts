@@ -50,7 +50,6 @@ export class MingoFileModel extends Model {
                 }
             },
             {
-                id: false,
                 versionKey: false
             }
         );
