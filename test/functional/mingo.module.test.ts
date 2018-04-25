@@ -117,7 +117,7 @@ export class MingoModuleFunctionalTest {
                         }
                     },
                     {
-                        name: 'mongoose-gridfs',
+                        name: 'mongoose-gridfs-bucket',
                         config: {
                             url: 'mongodb://localhost:27017',
                             connectionName: 'nope'
@@ -127,7 +127,7 @@ export class MingoModuleFunctionalTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: '172.18.0.2',
+                    endPoint: 'minio',
                     port: 9000,
                     secure: false,
                     accessKey: 'AKIAIOSFODNN7EXAMPLE',

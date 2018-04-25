@@ -1,3 +1,4 @@
+import * as mongoose from 'mongoose';
 /**
  * @see https://github.com/pana-cc/mocha-typescript
  */
@@ -37,6 +38,7 @@ export class MingoModuleTest {
     @test('Mingo module fail to load because no minio manager have been set up')
     startUpFailWhenNoMinioManagerFound(done) {
         this._mockConnection.emitAfter('connected', 400);
+        this._mockConnection.db = new mongoose.mongo.Db('dbname', new mongoose.mongo.Server('fake.host.in.tdw', 4242));
 
         @HapinessModule({
             version: '1.0.0',
@@ -64,7 +66,7 @@ export class MingoModuleTest {
                         }
                     },
                     {
-                        name: 'mongoose-gridfs',
+                        name: 'mongoose-gridfs-bucket',
                         config: {
                             url: 'mongodb://localhost:27017',
                             connectionName: 'gridfs'
@@ -197,6 +199,7 @@ export class MingoModuleTest {
     @test('Mingo module fail to load because multiple mongoose adapter have been configured without conectionName')
     startUpFailWhenMultipleMongooseAdapterFoundWithoutConnectionName(done) {
         this._mockConnection.emitAfter('connected', 400);
+        this._mockConnection.db = new mongoose.mongo.Db('dbname', new mongoose.mongo.Server('fake.host.in.tdw', 4242));
 
         @HapinessModule({
             version: '1.0.0',
@@ -232,7 +235,7 @@ export class MingoModuleTest {
                         }
                     },
                     {
-                        name: 'mongoose-gridfs',
+                        name: 'mongoose-gridfs-bucket',
                         config: {
                             url: 'mongodb://localhost:27017'
                         }
@@ -259,6 +262,7 @@ export class MingoModuleTest {
     @test('Mingo module fail to load because Mingo module configuration is missing with multiple mongoose adapter.')
     startUpFailBecauseNoMingoModuleConfigurationWithMultipleMongooseAdapter(done) {
         this._mockConnection.emitAfter('connected', 400);
+        this._mockConnection.db = new mongoose.mongo.Db('dbname', new mongoose.mongo.Server('fake.host.in.tdw', 4242));
 
         @HapinessModule({
             version: '1.0.0',
@@ -293,7 +297,7 @@ export class MingoModuleTest {
                         }
                     },
                     {
-                        name: 'mongoose-gridfs',
+                        name: 'mongoose-gridfs-bucket',
                         config: {
                             url: 'mongodb://localhost:27017',
                             connectionName: 'nope'
@@ -321,6 +325,7 @@ export class MingoModuleTest {
     @test('Mingo module load successfuly with multiple mongoose adapter have been configured with a conectionName')
     startUpSuccessWhenMultipleMongooseAdapterFoundWithConnectionName(done) {
         this._mockConnection.emitAfter('connected', 400);
+        this._mockConnection.db = new mongoose.mongo.Db('dbname', new mongoose.mongo.Server('fake.host.in.tdw', 4242));
 
         @HapinessModule({
             version: '1.0.0',
@@ -352,7 +357,7 @@ export class MingoModuleTest {
                         }
                     },
                     {
-                        name: 'mongoose-gridfs',
+                        name: 'mongoose-gridfs-bucket',
                         config: {
                             url: 'mongodb://localhost:27017',
                             connectionName: 'nope'

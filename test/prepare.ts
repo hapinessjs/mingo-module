@@ -9,5 +9,6 @@ prepare(
     done => {
         MongoTestUtils.stopMongo(done);
         console.log('=== MONGOD KILL ===');
+        setTimeout(() => process.exit(), 1500);
     }
 );
