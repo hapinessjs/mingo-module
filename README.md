@@ -62,7 +62,8 @@ class MyService {
 ```
 
 ## Change History
-
+* v1.2.0 (2018-04-25)
+    * Update to @hapiness/mongo 2.x
 * v1.1.2 (2018-02-14)
     * MingoModel now have an id exposed.
     * Fix when calling the toJson method but value returned by mongo is null.
