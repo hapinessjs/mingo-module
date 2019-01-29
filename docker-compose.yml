@@ -25,6 +25,7 @@ services:
     command: npm run build
     volumes:
       - "./coverage:/usr/src/app/coverage"
+      - "./:/usr/src/app"
     depends_on:
       minio:
         condition: service_healthy

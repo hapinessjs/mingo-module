@@ -8,6 +8,7 @@ import { BucketManager } from './bucket.manager';
 import {
     MingoFileDocumentInterface, MingoFileInterface, UploadFileType, MingoConfig, MINGO_MODULE_CONFIG
 } from '../interfaces';
+import { Stream } from 'stream';
 
 @Injectable()
 export class FilesManager {
@@ -34,18 +35,18 @@ export class FilesManager {
      *
      * @param input File source
      * @param filename Filename
-     * @param content_type Mime type
+     * @param contentType Mime type
      * @param metadata Custom object to store information about the file
      */
-    upload(input: UploadFileType, filename: string, content_type?: string, metadata?: Object): Observable<MingoFileInterface> {
+    upload(input: UploadFileType, filename: string, contentType?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this._bucketService
-            .createFile(input, filename, null, content_type)
+            .createFile(input, filename, null, contentType)
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
                     id: undefined,
                     filename: filename,
                     size: result.size,
-                    contentType: result.contentType,
+                    contentType: result.metaData['content-type'],
                     created_at: new Date(result.lastModified),
                     updated_at: new Date(result.lastModified),
                     md5: result.etag,
@@ -65,16 +66,21 @@ export class FilesManager {
      *
      * @param input File source
      * @param filename Filename
-     * @param content_type Mime type
+     * @param contentType Mime type
      * @param metadata Custom object to store informations about the file
      */
-    create(input: UploadFileType, filename, content_type?: string, metadata?: { [key: string]: any}): Observable<MingoFileInterface> {
+    create(
+        input: UploadFileType,
+        filename: string,
+        contentType?: string,
+        metadata?: { [key: string]: any}
+    ): Observable<MingoFileInterface> {
         return this.exists(filename)
             .flatMap(_ => !!_ ?
                 Observable.throw(Biim.conflict(`File ${filename} already exists`)) :
                 Observable.of(_)
             )
-            .flatMap(_ => this.upload(input, filename, content_type, metadata));
+            .flatMap(_ => this.upload(input, filename, contentType, metadata));
     }
 
     /**
@@ -141,7 +147,7 @@ export class FilesManager {
      *
      * @param filename Filename
      */
-    download(filename: string): Observable<ReadableStream> {
+    download(filename: string): Observable<Stream> {
         return this.findByFilename(filename, 'filename')
             .flatMap(_ => this._bucketService
                 .getAdapter()

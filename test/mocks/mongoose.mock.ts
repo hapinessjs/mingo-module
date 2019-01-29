@@ -32,6 +32,12 @@ export class ConnectionMock extends EventEmitter {
         this._db = theDb;
     }
 
+    get client(): any {
+        return {
+            close: () => Promise.resolve()
+        }
+    }
+
     model(collection: string, schema: any) {
         return schema;
     }

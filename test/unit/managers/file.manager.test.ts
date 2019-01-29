@@ -120,12 +120,17 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const contentType = 'text/plain';
         const metadata = { lupulus: { stock: 99, empty: 10 } };
-        unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
-            size: input.length,
-            contentType: contentType,
-            etag: new Date().getTime(),
-            lastModified: new Date(),
-        }));
+        unit
+            .stub(this._bucketManager, 'createFile')
+            .returns(Observable.of({
+                size: input.length,
+                etag: new Date().getTime(),
+                lastModified: new Date(),
+                metaData: {
+                    'content-type': contentType,
+                }
+            }));
+
         this._modelMock.findOneAndUpdate = unit.stub().returns(Promise.resolve(null));
         unit.function(this._filesManager.upload);
         this._filesManager.upload(input, filename, contentType, metadata)
@@ -141,12 +146,17 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const contentType = 'text/plain';
         const metadata = { lupulus: { stock: 99, empty: 10 } };
-        unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
-            size: input.length,
-            contentType: contentType,
-            etag: new Date().getTime(),
-            lastModified: new Date(),
-        }));
+        unit
+            .stub(this._bucketManager, 'createFile')
+            .returns(Observable.of({
+                size: input.length,
+                etag: new Date().getTime(),
+                lastModified: new Date(),
+                metaData: {
+                    'content-type': contentType,
+                }
+            }));
+
         const file = {
             filename,
             contentType,
