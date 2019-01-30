@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/mingo",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Manage files using minio as file storage and mongodb for metadata",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -76,14 +76,15 @@
     },
     "homepage": "https://github.com/hapinessjs/mingo-module#readme",
     "dependencies": {
-        "@hapiness/biim": "^1.4.0",
-        "@types/node": "^9.4.0"
+        "@hapiness/biim": "~1.4.0"
     },
     "devDependencies": {
-        "@hapiness/core": "^1.3.0",
-        "@hapiness/minio": "^1.0.0",
-        "@hapiness/mongo": "^2.0.2",
+        "@hapiness/core": "1.6.0",
+        "@hapiness/minio": "~2.0.1",
+        "@hapiness/mongo": "~2.0.3",
         "@types/fs-extra": "^5.0.0",
+        "@types/minio": "~7.0.1",
+        "@types/node": "^9.4.0",
         "coveralls": "^3.0.0",
         "debug": "^3.1.0",
         "fs-extra": "^5.0.0",
@@ -96,12 +97,12 @@
         "ts-node": "^3.3.0",
         "tslint": "^5.8.0",
         "typescript": "^2.7.1",
-        "unit.js": "^2.0.0"
+        "unit.js": "~2.1.0"
     },
     "peerDependencies": {
-        "@hapiness/core": "^1.5.0",
-        "@hapiness/minio": "^1.0.0",
-        "@hapiness/mongo": "^2.0.2",
+        "@hapiness/core": "1.6.0",
+        "@hapiness/minio": "^2.0.1",
+        "@hapiness/mongo": "^2.0.3",
         "rxjs": "^5.5.6"
     },
     "engines": {

@@ -27,11 +27,10 @@ Hapiness.bootstrap(ApplicationModule, [
         connection: {
             endPoint: 'MINIO-URL',
             port: 9000,
-            secure: false,
+            useSSL: false,
             accessKey: 'MINIO_ACCESS_KEY',
             secretKey: 'MINIO_SECRET_KEY'
-        },
-        default_region: 'us-east-1'
+        }
     })
 ])
 .catch(err => {

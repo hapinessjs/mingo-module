@@ -3,7 +3,7 @@ import * as unit from 'unit.js';
 import { test, suite } from 'mocha-typescript';
 
 import { MongoClientService } from '@hapiness/mongo';
-import { MinioService, MinioBucketRegion } from '@hapiness/minio';
+import { MinioService } from '@hapiness/minio';
 import { MingoConfig, MingoService } from '../../../src/index';
 import { FilesManager } from '../../../src/module/managers/files.manager';
 
@@ -29,7 +29,7 @@ export class MingoServiceTest {
         const _minioService: MinioService = <any> {};
         const _config: MingoConfig = {};
         const bucketName = 'test.bucket';
-        const bucketRegion = MinioBucketRegion.AP_NORTHEAST_1;
+        const bucketRegion = 'ap-northeast-1';
 
         const service = new MingoService(_mongoClientService, _minioService, _config);
         const firstCall = service.fromBucket(bucketName, bucketRegion);
