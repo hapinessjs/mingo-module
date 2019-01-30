@@ -127,7 +127,7 @@ export class MingoModuleFunctionalTest {
             }),
             MinioExt.setConfig({
                 connection: {
-                    endPoint: 'florent.in.tdw',
+                    endPoint: 'minio',
                     port: 9000,
                     useSSL: false,
                     accessKey: 'AKIAIOSFODNN7EXAMPLE',
