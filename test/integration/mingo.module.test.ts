@@ -105,11 +105,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
                 },
-                default_region: 'default'
             })
         ])
         .then(() => done(new Error('Should not succeed')))
@@ -182,11 +181,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .then(() => done(new Error('Should not succeed')))
@@ -246,11 +244,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {
@@ -309,11 +306,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {
@@ -369,11 +365,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {

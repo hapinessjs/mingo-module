@@ -31,3 +31,5 @@ testem.log
 Thumbs.db
 
 /config
+ts-node-*/
+.v8flags.*
