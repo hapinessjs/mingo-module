@@ -1,7 +1,7 @@
 import { MinioService } from '@hapiness/minio';
 import { BucketItemStat, Region as MinioRegion } from 'minio';
 import { Observable } from 'rxjs/Observable';
-import { ReadStream } from 'fs';
+import { Stream } from 'stream';
 
 export class BucketManager {
   private _name: string;
@@ -41,7 +41,7 @@ export class BucketManager {
         .defaultIfEmpty(null);
   }
 
-  createFile(input: ReadStream | Buffer | string, filename: string, size?: number, contentType?: string): Observable<BucketItemStat> {
+  createFile(input: Stream | Buffer | string, filename: string, size?: number, contentType?: string): Observable<BucketItemStat> {
     return this.assert()
       .switchMap(_ => this._minioService.putObject(this.getName(), filename, input, size, contentType))
       .switchMap(_ => this._minioService.statObject(this.getName(), filename));
