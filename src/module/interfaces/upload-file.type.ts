@@ -1,3 +1,5 @@
-import { ReadStream } from 'fs';
+import { Stream } from 'stream';
+import { ModelUpdateOptions } from 'mongoose';
 
-export type UploadFileType = ReadStream | Buffer | string;
+export type UploadFileType = Stream | Buffer | string;
+export type ModelUpdateOptions = ModelUpdateOptions;

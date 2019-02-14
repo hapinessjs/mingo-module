@@ -1,11 +1,11 @@
 import * as fs from 'fs';
-import { ReadStream } from 'fs-extra';
 import { HapinessModule, OnStart } from '@hapiness/core';
 import { MinioModule } from '@hapiness/minio';
 import { MongoModule } from '@hapiness/mongo';
 import { MingoModule } from '../src/module/mingo.module';
-import { MingoService } from '../src/index';
+import { MingoService } from '../src';
 import { FilesManager } from '../src/module/managers/files.manager';
+import { FilesRepository } from '../src/module/repository';
 
 const debug = require('debug')('hapiness:mingo-module')
 
@@ -18,7 +18,8 @@ const debug = require('debug')('hapiness:mingo-module')
         MingoModule.setConfig({ db: { connectionName: 'mingo' } })
     ],
     providers: [
-        MingoService
+        MingoService,
+        FilesRepository
     ],
     exports: []
 })
@@ -33,28 +34,27 @@ export class ApplicationModule implements OnStart {
         }
 
         fb().create(fs.createReadStream('./package.json'), 'package.json', 'json', null)
-            .do(_ => debug(`create _ ==> `, _))
-            .flatMap(_ => fb().exists('package.json'))
-            .do(_ => debug(`exists after create _ ==> `, _))
-            .flatMap(_ => fb().findByFilename('package.json'))
-            .do(_ => debug(`findByFilename _ ==> `, _))
-            .flatMap(_ => fb().updateByFilename('package.json', { meta1: 'metadata' }))
-            .do(_ => debug(`updateByFilename _ ==> `, _))
-            .flatMap(_ => fb().exists('package.json'))
-            .do(_ => debug(`exists after update _ ==> `, _))
-            .flatMap(_ => fb().download('package.json')
-                .map((__: any) => (__ as ReadStream).pipe(fs.createWriteStream('./package.result.zip')))
+            .do(file => debug(`create _ ==> `, file))
+            .flatMap(() => fb().exists('package.json'))
+            .do(doesFileExists => debug(`exists after create _ ==> `, doesFileExists))
+            .flatMap(() => fb().findByFilename('package.json'))
+            .do(file => debug(`findByFilename _ ==> `, file))
+            .flatMap(() => fb().updateByFilename('package.json', { meta1: 'metadata' }))
+            .do(file => debug(`updateByFilename _ ==> `, file))
+            .flatMap(() => fb().exists('package.json'))
+            .do(doesFileExists => debug(`exists after update _ ==> `, doesFileExists))
+            .flatMap(() => fb().download('package.json')
+                .map(fileStream => fileStream.pipe(fs.createWriteStream('./package.result.zip')))
             )
-            .do(_ => debug(`downloaded!`))
-            .flatMap(_ => fb().removeByFilename('package.json'))
-            .do(_ => debug(`DONE! with result ${_}`))
-            .subscribe(_ => debug(`next = `, _),
+            .do(() => debug(`downloaded!`))
+            .flatMap(() => fb().removeByFilename('package.json'))
+            .do(deletedFile => debug(`DONE! with result ${deletedFile}`))
+            .subscribe(file => debug(`File was `, file),
                 err => {
                     debug(`error : `, err)
                     debug(`stack : `, err.stack)
                     fb().removeByFilename('package.json')
-                        .do(_ => debug(`REMOVED ! ${_}`))
-                        .subscribe(_ => debug(`next = `, _),
+                        .subscribe(removedFile => debug(`REMOVED ! ${removedFile}`),
                             error => debug(`error on remove : `, error),
                             () => debug(`done`));
                 },

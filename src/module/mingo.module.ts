@@ -5,6 +5,7 @@ import { MingoService } from './services';
 import { MingoFileModel } from './models/mingo-file.model';
 import { Observable } from 'rxjs/Observable';
 import { MingoConfig, MINGO_MODULE_CONFIG } from './interfaces';
+import { FilesRepository } from './repository';
 
 @HapinessModule({
     version: '1.0.0',
@@ -14,7 +15,8 @@ import { MingoConfig, MINGO_MODULE_CONFIG } from './interfaces';
     imports: [],
     providers: [
         MongoClientService,
-        MinioService
+        MinioService,
+        FilesRepository
     ],
     exports: [
         MingoService
