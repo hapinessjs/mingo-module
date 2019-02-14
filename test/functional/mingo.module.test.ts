@@ -18,6 +18,7 @@ import { MingoModule, MingoService } from '../../src';
 import { FilesManager } from '../../src/module/managers/files.manager';
 import { Biim } from '@hapiness/biim';
 import { Observable } from 'rxjs/Observable';
+import { FilesRepository } from '../../src/module/repository';
 
 @suite('- MingoModule functional test file')
 export class MingoModuleFunctionalTest {
@@ -39,10 +40,11 @@ export class MingoModuleFunctionalTest {
             imports: [
                 MongoModule,
                 MinioModule,
-                MingoModule
+                MingoModule.setConfig({ db: { connectionName: 'mingo' } })
             ],
             providers: [
-                MingoService
+                MingoService,
+                FilesRepository
             ],
             exports: []
         })
@@ -85,7 +87,7 @@ export class MingoModuleFunctionalTest {
                     .flatMap(_ => fb().update({ contentType: 'application/json' }, { meta2: 'json' }))
                     .do(_ => unit
                         .array(_)
-                        .contains([{ metadata: { meta1 : 'metadata',  meta2: 'json' } }])
+                        .contains([{ metadata: { meta1 : 'metadata', meta2: 'json' } }])
                     )
                     .flatMap(_ => fb().exists(null))
                     .catch(_ => {

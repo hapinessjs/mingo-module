@@ -1,11 +1,10 @@
 import { Region as MinioRegion } from 'minio'
-import { Injectable, Inject, Optional } from '@hapiness/core';
+import { Injectable } from '@hapiness/core';
 import { MinioService } from '@hapiness/minio';
-import { MongoClientService } from '@hapiness/mongo';
 
 import { BucketManager } from '../managers/bucket.manager';
 import { FilesManager } from '../managers/files.manager';
-import { MingoConfig, MINGO_MODULE_CONFIG } from '../interfaces/index';
+import { FilesRepository } from '../repository';
 
 @Injectable()
 export class MingoService {
@@ -13,9 +12,8 @@ export class MingoService {
     private _managers: { [key: string]: FilesManager } = {};
 
     constructor(
-        private _mongoClientService: MongoClientService,
-        private _minioService: MinioService,
-        @Optional() @Inject(MINGO_MODULE_CONFIG) private _config: MingoConfig
+        private filesRepository: FilesRepository,
+        private minioService: MinioService
     ) { }
 
     fromBucket(name: string, region?: MinioRegion): FilesManager {
@@ -24,8 +22,8 @@ export class MingoService {
             return this._managers[key];
         }
 
-        const bucketManager = new BucketManager(this._minioService).setName(name).setRegion(region);
-        this._managers[key] = new FilesManager(bucketManager, this._mongoClientService, this._config);
+        const bucketManager = new BucketManager(this.minioService).setName(name).setRegion(region);
+        this._managers[key] = new FilesManager(bucketManager, this.filesRepository);
         return this._managers[key];
     }
 }

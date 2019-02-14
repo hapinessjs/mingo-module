@@ -15,6 +15,7 @@ import { MinioModule, MinioExt } from '@hapiness/minio';
 import { MingoModule, MingoService } from '../../src';
 import { Observable } from 'rxjs';
 import { ConnectionMock, MongooseMockInstance, GridFsMockInstance } from '../mocks';
+import { FilesRepository } from '../../src/module/repository';
 
 @suite('- Integration MingoModule test file')
 export class MingoModuleTest {
@@ -49,7 +50,8 @@ export class MingoModuleTest {
                 MingoModule
             ],
             providers: [
-                MingoService
+                MingoService,
+                FilesRepository
             ],
             exports: []
         })

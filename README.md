@@ -62,6 +62,10 @@ class MyService {
 ```
 
 ## Change History
+* v1.4.0 (2019-02-14 🌹)
+    * Added a new repository layer
+    * Implemented a basic retry strategy for compatibility with comsodb _error 429_. (No impact on mongodb)
+    * Added a new optional config option db.maxRetryAttempts: Number to determine max number of retry on cosmo retry strategy. _Default is 9._
 * v1.3.0 (2019-01-30)
     * Update to @hapiness/core 1.6.x
     * Update to @hapiness/minio 2.0.1
