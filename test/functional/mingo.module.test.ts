@@ -18,6 +18,7 @@ import { MingoModule, MingoService } from '../../src';
 import { FilesManager } from '../../src/module/managers/files.manager';
 import { Biim } from '@hapiness/biim';
 import { Observable } from 'rxjs/Observable';
+import { FilesRepository } from '../../src/module/repository';
 
 @suite('- MingoModule functional test file')
 export class MingoModuleFunctionalTest {
@@ -27,7 +28,7 @@ export class MingoModuleFunctionalTest {
             id: null,
             filename: 'package.json',
             bucket: 'test.bucket',
-            contentType: 'json',
+            contentType: 'application/json',
             size: fs.lstatSync('./package.json').size,
             md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex'),
             created_at: null,
@@ -40,10 +41,11 @@ export class MingoModuleFunctionalTest {
             imports: [
                 MongoModule,
                 MinioModule,
-                MingoModule
+                MingoModule.setConfig({ db: { connectionName: 'mingo' } })
             ],
             providers: [
-                MingoService
+                MingoService,
+                FilesRepository
             ],
             exports: []
         })
@@ -56,7 +58,7 @@ export class MingoModuleFunctionalTest {
                     return self._mingoService.fromBucket('test.bucket');
                 }
 
-                fb().create(fs.createReadStream('./package.json'), 'package.json', 'json', null)
+                fb().create(fs.createReadStream('./package.json'), 'package.json', 'application/json', null)
                     .do(_ => Object.assign(fileProperties, { id: _.id, created_at: _.created_at, updated_at: _.updated_at }))
                     .do(_ => unit
                         .object(_)
@@ -83,15 +85,15 @@ export class MingoModuleFunctionalTest {
                         .bool(_)
                         .isTrue()
                     )
-                    .flatMap(_ => fb().update({ contentType: 'json' }, { meta2: 'json' }))
+                    .flatMap(_ => fb().update({ contentType: 'application/json' }, { meta2: 'json' }))
                     .do(_ => unit
                         .array(_)
-                        .contains([{ metadata: { meta1 : 'metadata',  meta2: 'json' } }])
+                        .contains([{ metadata: { meta1 : 'metadata', meta2: 'json' } }])
                     )
                     .flatMap(_ => fb().exists(null))
                     .catch(_ => {
-                         unit.object(_).isInstanceOf(Error).is(Biim.badRequest(`No filename provided`));
-                         return Observable.of(null);
+                        unit.object(_).isInstanceOf(Error).is(Biim.badRequest(`No filename provided`));
+                        return Observable.of(null);
                     })
                     .flatMap(_ => fb().removeByFilename(null))
                     .catch(_ => {
@@ -114,13 +116,13 @@ export class MingoModuleFunctionalTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017'
+                            url: 'mongodb://localhost:27017/mingo-tests'
                         }
                     },
                     {
                         name: 'mongoose-gridfs-bucket',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-tests',
                             connectionName: 'nope'
                         }
                     }
@@ -130,11 +132,10 @@ export class MingoModuleFunctionalTest {
                 connection: {
                     endPoint: 'minio',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'AKIAIOSFODNN7EXAMPLE',
                     secretKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-                },
-                default_region: 'us-east-1'
+                }
             })
         ])
         .catch(err => {

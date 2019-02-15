@@ -15,6 +15,7 @@ import { MinioModule, MinioExt } from '@hapiness/minio';
 import { MingoModule, MingoService } from '../../src';
 import { Observable } from 'rxjs';
 import { ConnectionMock, MongooseMockInstance, GridFsMockInstance } from '../mocks';
+import { FilesRepository } from '../../src/module/repository';
 
 @suite('- Integration MingoModule test file')
 export class MingoModuleTest {
@@ -49,7 +50,8 @@ export class MingoModuleTest {
                 MingoModule
             ],
             providers: [
-                MingoService
+                MingoService,
+                FilesRepository
             ],
             exports: []
         })
@@ -105,11 +107,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
                 },
-                default_region: 'default'
             })
         ])
         .then(() => done(new Error('Should not succeed')))
@@ -182,11 +183,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .then(() => done(new Error('Should not succeed')))
@@ -246,11 +246,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {
@@ -309,11 +308,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {
@@ -369,11 +367,10 @@ export class MingoModuleTest {
                 connection: {
                     endPoint: 'endpoint.minio.tld',
                     port: 9000,
-                    secure: false,
+                    useSSL: false,
                     accessKey: 'accessKey',
                     secretKey: 'secretKey',
-                },
-                default_region: 'default'
+                }
             })
         ])
         .catch(err => {

@@ -3,7 +3,6 @@ import * as unit from 'unit.js';
 import { Observable } from 'rxjs';
 
 import { BucketManager } from '../../../src/module/managers/bucket.manager';
-import { MinioBucketRegion } from '@hapiness/minio';
 
 @suite('- Unit Test BucketManager')
 export class BucketManagerUnitTest {
@@ -37,8 +36,8 @@ export class BucketManagerUnitTest {
         unit.object(this._bucketManager.setName('ananas')).isInstanceOf(BucketManager);
         unit.string(this._bucketManager.getName()).is('ananas');
 
-        unit.object(this._bucketManager.setRegion(MinioBucketRegion.EU_CENTRAL_1)).isInstanceOf(BucketManager);
-        unit.string(this._bucketManager.getRegion()).is(MinioBucketRegion.EU_CENTRAL_1);
+        unit.object(this._bucketManager.setRegion('eu-central-1')).isInstanceOf(BucketManager);
+        unit.string(this._bucketManager.getRegion()).is('eu-central-1');
     }
 
     @test('- get adapter')

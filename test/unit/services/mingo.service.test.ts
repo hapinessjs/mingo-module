@@ -1,22 +1,22 @@
 import * as unit from 'unit.js';
 
 import { test, suite } from 'mocha-typescript';
-
 import { MongoClientService } from '@hapiness/mongo';
-import { MinioService, MinioBucketRegion } from '@hapiness/minio';
-import { MingoConfig, MingoService } from '../../../src/index';
+import { MinioService } from '@hapiness/minio';
+
+import { MingoConfig, MingoService } from '../../../src';
 import { FilesManager } from '../../../src/module/managers/files.manager';
+import { FilesRepository } from '../../../src/module/repository';
 
 @suite('- Unit MingoServiceTest file')
 export class MingoServiceTest {
 
     @test('- Create the service and get the instance')
     testServiceGetInstance(done) {
-        const _mongoClientService: MongoClientService = <any> {};
         const _minioService: MinioService = <any> {};
-        const _config: MingoConfig = {};
+        const _filesRepository: FilesRepository = <any> {};
         const bucketName = 'test.bucket';
-        const service = new MingoService(_mongoClientService, _minioService, _config);
+        const service = new MingoService(_filesRepository, _minioService);
 
         unit.object(service.fromBucket(bucketName)).isInstanceOf(FilesManager);
         unit.object(service['_managers'][`${bucketName}_`]).isInstanceOf(FilesManager);
@@ -25,13 +25,14 @@ export class MingoServiceTest {
 
     @test('- Call twice the from bucket method and retreive the extact same instance')
     retreivingTwiceTheSameBucketShouldReturnTheSameInstance(done) {
-        const _mongoClientService: MongoClientService = <any> {};
         const _minioService: MinioService = <any> {};
         const _config: MingoConfig = {};
-        const bucketName = 'test.bucket';
-        const bucketRegion = MinioBucketRegion.AP_NORTHEAST_1;
+        const _filesRepository: FilesRepository = <any> {};
 
-        const service = new MingoService(_mongoClientService, _minioService, _config);
+        const bucketName = 'test.bucket';
+        const bucketRegion = 'ap-northeast-1';
+
+        const service = new MingoService(_filesRepository, _minioService);
         const firstCall = service.fromBucket(bucketName, bucketRegion);
         const secondCall = service.fromBucket(bucketName, bucketRegion);
 

@@ -4,18 +4,15 @@ import { Observable } from 'rxjs';
 
 import { FilesManager } from '../../../src/module/managers/files.manager';
 import { BucketManager } from '../../../src/module/managers/bucket.manager';
-import { MinioServiceMock } from '../../mocks/index';
+import { MinioServiceMock } from '../../mocks';
 import { Readable } from 'stream';
-import { MingoConfig } from '../../../src';
 
 @suite('- Unit Test FilesManager')
 export class FilesManagerUnitTest {
 
     private _bucketManager: BucketManager;
     private _filesManager: FilesManager;
-    private _modelMock: any;
-    private _mongoMock: any;
-    private _configMock: MingoConfig = {};
+    private _filesRepositoryMock: any;
 
     private _classMock = {
         toJSON: function () {
@@ -24,45 +21,25 @@ export class FilesManagerUnitTest {
     }
 
     before() {
-        this._modelMock = {
-            findOneAndUpdate: unit.stub().returns(Promise.resolve()),
-            find: unit.stub().returns(Promise.resolve()),
-            findOne: unit.stub().returns(Promise.resolve()),
-            update: unit.stub().returns(Promise.resolve()),
-            findOneAndRemove: unit.stub().returns(Promise.resolve()),
-        };
-        this._mongoMock = {
-            getModel: () => this._modelMock
+
+        this._filesRepositoryMock = {
+            upsertFileByFilename: () => unit.stub().returns(Observable.of(null)),
+            findFiles: () => unit.stub().returns(Observable.of(null)),
+            findOneFile: () => unit.stub().returns(Observable.of(null)),
+            updateFiles: () => unit.stub().returns(Observable.of(null)),
+            updateFileByFilename: () => unit.stub().returns(Observable.of(null)),
+            remove: () => unit.stub().returns(Observable.of(null)),
+            removeFileByFilename: () => unit.stub().returns(Observable.of(null))
         };
 
         this._bucketManager = new BucketManager(<any>MinioServiceMock);
-        this._filesManager = new FilesManager(this._bucketManager, this._mongoMock, this._configMock);
+        this._filesManager = new FilesManager(this._bucketManager, this._filesRepositoryMock);
     }
 
     after() {
-        this._modelMock = undefined;
         this._bucketManager = undefined;
         this._filesManager = undefined;
-        this._configMock = {};
-    }
-
-    @test('- _getDocument')
-    getDocument() {
-        unit.function(this._filesManager['_getDocument']);
-        unit.object(this._filesManager['_getDocument']()).is(this._modelMock);
-    }
-
-    @test('- _getDocument: retreive options\' connectionName')
-    getDocumentWithOptions(done) {
-        const connectionName = { connectionName: 'test' };
-        this._configMock = { db: connectionName };
-        const getModelSpy = unit.spy(this._mongoMock, 'getModel');
-        this._filesManager = new FilesManager(this._bucketManager, this._mongoMock, this._configMock);
-
-        this._filesManager['_getDocument']();
-        unit.string(JSON.stringify(getModelSpy.getCalls()[0].args[0]))
-            .isEqualTo(JSON.stringify(Object.assign({ adapter: 'mongoose'}, { options: connectionName })))
-        done();
+        this._filesRepositoryMock = undefined;
     }
 
     @test('- exists: yes')
@@ -120,13 +97,18 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const contentType = 'text/plain';
         const metadata = { lupulus: { stock: 99, empty: 10 } };
-        unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
-            size: input.length,
-            contentType: contentType,
-            etag: new Date().getTime(),
-            lastModified: new Date(),
-        }));
-        this._modelMock.findOneAndUpdate = unit.stub().returns(Promise.resolve(null));
+        unit
+            .stub(this._bucketManager, 'createFile')
+            .returns(Observable.of({
+                size: input.length,
+                etag: new Date().getTime(),
+                lastModified: new Date(),
+                metaData: {
+                    'content-type': contentType,
+                }
+            }));
+
+        this._filesRepositoryMock.upsertFileByFilename = unit.stub().returns(Promise.resolve(null));
         unit.function(this._filesManager.upload);
         this._filesManager.upload(input, filename, contentType, metadata)
             .subscribe(_ => {
@@ -141,12 +123,17 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         const contentType = 'text/plain';
         const metadata = { lupulus: { stock: 99, empty: 10 } };
-        unit.stub(this._bucketManager, 'createFile').returns(Observable.of({
-            size: input.length,
-            contentType: contentType,
-            etag: new Date().getTime(),
-            lastModified: new Date(),
-        }));
+        unit
+            .stub(this._bucketManager, 'createFile')
+            .returns(Observable.of({
+                size: input.length,
+                etag: new Date().getTime(),
+                lastModified: new Date(),
+                metaData: {
+                    'content-type': contentType,
+                }
+            }));
+
         const file = {
             filename,
             contentType,
@@ -156,9 +143,7 @@ export class FilesManagerUnitTest {
             updated_at: new Date(),
             md5: new Date().getTime(),
         };
-        this._modelMock.findOneAndUpdate = unit.stub().returns(Promise.resolve({
-            toJSON: () => file
-        }));
+        this._filesRepositoryMock.upsertFileByFilename = unit.stub().returns(Promise.resolve(file));
         unit.function(this._filesManager.upload);
         this._filesManager.upload(input, filename, contentType, metadata)
             .subscribe(_ => {
@@ -220,7 +205,7 @@ export class FilesManagerUnitTest {
             md5: new Date().getTime()
         });
 
-        this._modelMock.find.returns(Promise.resolve([null, null, file, null]));
+        this._filesRepositoryMock.findFiles = unit.stub().returns(Observable.of([null, null, file, null]));
         unit.function(this._filesManager.find);
         this._filesManager.find()
             .subscribe(_ => {
@@ -243,7 +228,7 @@ export class FilesManagerUnitTest {
             md5: new Date().getTime()
         });
 
-        this._modelMock.find.returns(Promise.resolve([file]));
+        this._filesRepositoryMock.findFiles = unit.stub().returns(Observable.of([file]));
         unit.function(this._filesManager.find);
         this._filesManager.find()
             .subscribe(_ => {
@@ -263,7 +248,7 @@ export class FilesManagerUnitTest {
             created_at: new Date(),
             updated_at: new Date()
         });
-        this._modelMock.find.returns(Promise.resolve([file]));
+        this._filesRepositoryMock.findFiles = unit.stub().returns(Observable.of([file]));
         unit.function(this._filesManager.find);
         this._filesManager.find(null, ['filename', 'contentType', 'size', 'created_at', 'updated_at'])
             .subscribe(_ => {
@@ -275,7 +260,7 @@ export class FilesManagerUnitTest {
     @test('- findByFilename returns null')
     findByFilenameReturnsNull(done) {
         const filename = 'helloworld.txt';
-        this._modelMock.findOne.returns(Promise.resolve(null));
+        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(null));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename)
         .subscribe(_ => {
@@ -297,7 +282,7 @@ export class FilesManagerUnitTest {
             updated_at: new Date(),
             md5: new Date().getTime(),
         });
-        this._modelMock.findOne.returns(Promise.resolve(file));
+        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(file));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename)
             .subscribe(_ => {
@@ -315,7 +300,7 @@ export class FilesManagerUnitTest {
             contentType: 'application/octet-stream',
             size: input.length
         });
-        this._modelMock.findOne.returns(Promise.resolve(file));
+        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(file));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size'])
             .subscribe(_ => {
@@ -341,26 +326,6 @@ export class FilesManagerUnitTest {
             }, err => done(err));
     }
 
-    @test('- _prepareUpdateObject')
-    _prepareUpdateObject() {
-        const input = {
-            meta1: '',
-            meta2: 2,
-            meta3: {},
-            meta4: ['a', 'b', 'c']
-        };
-
-        const output = {
-            'metadata.meta4': ['a', 'b', 'c'],
-            'metadata.meta3': {},
-            'metadata.meta2': 2,
-            'metadata.meta1': ''
-        };
-
-        const res = this._filesManager['_prepareUpdateObject'](input);
-        unit.string(JSON.stringify(res)).isEqualTo(JSON.stringify(output));
-    }
-
     @test('- updateByFilename')
     updateByFilename(done) {
         const filename = 'helloworld.txt';
@@ -374,14 +339,14 @@ export class FilesManagerUnitTest {
             md5: new Date().getTime(),
         });
 
-        this._modelMock.findOneAndUpdate.returns(Promise.resolve(updatedFile));
+        this._filesRepositoryMock.updateFileByFilename = unit.stub().returns(Observable.of(updatedFile));
 
         unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
 
         this._filesManager.updateByFilename(filename, { meta1: 'meta1' })
             .subscribe(_ => {
                 unit.string(JSON.stringify(_)).isEqualTo(JSON.stringify(updatedFile));
-                unit.assert(this._modelMock.findOneAndUpdate.calledOnce);
+                unit.assert(this._filesRepositoryMock.updateFileByFilename.calledOnce);
                 done();
             }, err => done(err));
     }
@@ -390,14 +355,14 @@ export class FilesManagerUnitTest {
     updateByFilenameReturnsNull(done) {
         const filename = 'helloworld.txt';
 
-        this._modelMock.findOneAndUpdate.returns(Promise.resolve(null));
+        this._filesRepositoryMock.updateFileByFilename = unit.stub().returns(Observable.of(null));
 
         unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
 
         this._filesManager.updateByFilename(filename, { meta1: 'meta1' })
             .subscribe(_ => {
                 unit.value(_).is(null);
-                unit.assert(this._modelMock.findOneAndUpdate.calledOnce);
+                unit.assert(this._filesRepositoryMock.updateFileByFilename.calledOnce);
                 done();
             }, err => done(err));
     }
@@ -429,12 +394,12 @@ export class FilesManagerUnitTest {
         const removeFileStub = unit.stub(this._bucketManager, 'removeFile');
         removeFileStub.returns(Observable.of(true));
 
-        this._modelMock.findOneAndRemove.returns(Promise.resolve(removedFile));
+        this._filesRepositoryMock.removeFileByFilename = unit.stub().returns(Observable.of(removedFile));
 
         this._filesManager.removeByFilename(filename)
             .subscribe(_ => {
                 unit.string(JSON.stringify(_)).isEqualTo(JSON.stringify(removedFile));
-                unit.assert(this._modelMock.findOneAndRemove.calledOnce);
+                unit.assert(this._filesRepositoryMock.removeFileByFilename.calledOnce);
                 unit.assert(existsStub.calledOnce);
                 unit.assert(removeFileStub.calledOnce);
                 done();
@@ -460,6 +425,7 @@ export class FilesManagerUnitTest {
         const filename = 'helloworld.txt';
         unit.stub(this._filesManager, 'exists').returns(Observable.of(true));
         unit.stub(this._bucketManager, 'removeFile').returns(Observable.of(false));
+        this._filesRepositoryMock.removeFileByFilename = unit.stub().returns(Observable.of({}));
 
         this._filesManager.removeByFilename(filename)
             .subscribe(_ => done(new Error('Should fail')), err => {
