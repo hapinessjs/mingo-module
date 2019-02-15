@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/mingo",
-    "version": "1.2.0",
+    "version": "2.0.0",
     "description": "Manage files using minio as file storage and mongodb for metadata",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -91,6 +91,7 @@
         "mocha": "^5.0.0",
         "mocha-prepare": "^0.1.0",
         "mocha-typescript": "^1.1.12",
+        "mongoose": "~5.4.12",
         "rimraf": "^2.6.2",
         "rxjs": "^5.5.6",
         "ts-node": "^3.3.0",
