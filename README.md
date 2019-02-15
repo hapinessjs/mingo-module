@@ -62,6 +62,8 @@ class MyService {
 ```
 
 ## Change History
+* v2.0.0 (2019-02-15)
+    * BC: Add bucket name in the file document
 * v1.2.0 (2018-04-25)
     * Update to @hapiness/mongo 2.x
 * v1.1.2 (2018-02-14)
