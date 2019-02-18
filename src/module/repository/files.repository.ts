@@ -30,11 +30,11 @@ export class FilesRepository {
     }
 
     /* istanbul ignore next */
-    public upsertFileByFilename(bucket: string, filename: string, fileToInsert: MingoFileInterface): Observable<MingoFileInterface> {
+    public upsertFileByFilename(filename: string, bucketName: string, fileToInsert: MingoFileInterface): Observable<MingoFileInterface> {
         return Observable
             .fromPromise(
                 this.retryOnError(() =>
-                    this._getDocument().findOneAndUpdate({ bucket, filename }, fileToInsert, { new: true, upsert: true })
+                    this._getDocument().findOneAndUpdate({ bucket: bucketName, filename }, fileToInsert, { new: true, upsert: true })
                 )
             )
             .map<MingoFileDocumentInterface, MingoFileInterface>(newFile => newFile ? newFile.toJSON() : newFile);
@@ -52,14 +52,15 @@ export class FilesRepository {
     }
 
     /* istanbul ignore next */
-    public findOneFile(
-        query: { [key: string]: any },
+    public findFileByFilename(
+        filename: string,
+        bucketName: string,
         projection?: string,
         options?: { [key: string]: any }
     ): Observable<MingoFileInterface> {
         return Observable
             .fromPromise(
-                this.retryOnError(() => this._getDocument().findOne(query, projection, options))
+                this.retryOnError(() => this._getDocument().findOne({ filename, bucket: bucketName }, projection, options))
             )
             .map<MingoFileDocumentInterface, MingoFileInterface>(file => file ? file.toJSON() : file);
     }
@@ -76,10 +77,10 @@ export class FilesRepository {
     }
 
     /* istanbul ignore next */
-    public updateFileByFilename(bucket: string, filename: string, update?: { [key: string]: any }): Observable <MingoFileInterface> {
+    public updateFileByFilename(filename: string, bucketName: string, update?: { [key: string]: any }): Observable <MingoFileInterface> {
         return Observable.fromPromise(
             this.retryOnError(() => this._getDocument()
-                    .findOneAndUpdate({ bucket, filename },
+                    .findOneAndUpdate({ bucket: bucketName, filename },
                         { $set: this._prepareUpdateObject(update) },
                         { new: true, upsert: false }
                     )
@@ -89,10 +90,10 @@ export class FilesRepository {
     }
 
     /* istanbul ignore next */
-    public removeFileByFilename(bucket: string, filename: string): Observable<MingoFileInterface> {
+    public removeFileByFilename(filename: string, bucketName: string): Observable<MingoFileInterface> {
         return Observable
             .fromPromise(
-                this.retryOnError(() => this._getDocument().findOneAndRemove({ bucket, filename }))
+                this.retryOnError(() => this._getDocument().findOneAndRemove({ bucket: bucketName, filename }))
             )
             .map(deletedFile => deletedFile ? deletedFile.toJSON() : deletedFile);
     }

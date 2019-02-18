@@ -50,7 +50,7 @@ export class FilesManager {
                     metadata: metadata || {}
                 })
             )
-            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(this.bucketService.getName(), fileMeta.filename, fileMeta));
+            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(fileMeta.filename, this.bucketService.getName(), fileMeta));
     }
 
     /**
@@ -137,7 +137,7 @@ export class FilesManager {
         filename: string, projection?: string | string[], options?: { [key: string]: any }
     ): Observable<MingoFileInterface> {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
-        return this.fileRepository.findOneFile({ filename, bucket: this.bucketService.getName() }, projectionStr, options);
+        return this.fileRepository.findFileByFilename(filename, this.bucketService.getName(), projectionStr, options);
     }
 
     /**
@@ -184,7 +184,7 @@ export class FilesManager {
         return this.exists(filename)
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot update ${filename}. File does not exist.`)) :
-                this.fileRepository.updateFileByFilename(this.bucketService.getName(), filename, update)
+                this.fileRepository.updateFileByFilename(filename, this.bucketService.getName(), update)
             );
      }
 
@@ -219,7 +219,7 @@ export class FilesManager {
             .flatMap(() => this.exists(filename))
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot remove ${filename}. File does not exist.`)) :
-                this.fileRepository.removeFileByFilename(this.bucketService.getName(), filename)
+                this.fileRepository.removeFileByFilename(filename, this.bucketService.getName())
             )
             .flatMap(file =>
                 this.bucketService
