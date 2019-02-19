@@ -25,7 +25,7 @@ export class FilesManagerUnitTest {
         this._filesRepositoryMock = {
             upsertFileByFilename: () => unit.stub().returns(Observable.of(null)),
             findFiles: () => unit.stub().returns(Observable.of(null)),
-            findOneFile: () => unit.stub().returns(Observable.of(null)),
+            findFileByFilename: () => unit.stub().returns(Observable.of(null)),
             updateFiles: () => unit.stub().returns(Observable.of(null)),
             updateFileByFilename: () => unit.stub().returns(Observable.of(null)),
             remove: () => unit.stub().returns(Observable.of(null)),
@@ -260,7 +260,7 @@ export class FilesManagerUnitTest {
     @test('- findByFilename returns null')
     findByFilenameReturnsNull(done) {
         const filename = 'helloworld.txt';
-        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(null));
+        this._filesRepositoryMock.findFileByFilename = unit.stub().returns(Observable.of(null));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename)
         .subscribe(_ => {
@@ -282,7 +282,7 @@ export class FilesManagerUnitTest {
             updated_at: new Date(),
             md5: new Date().getTime(),
         });
-        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(file));
+        this._filesRepositoryMock.findFileByFilename = unit.stub().returns(Observable.of(file));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename)
             .subscribe(_ => {
@@ -300,7 +300,7 @@ export class FilesManagerUnitTest {
             contentType: 'application/octet-stream',
             size: input.length
         });
-        this._filesRepositoryMock.findOneFile = unit.stub().returns(Observable.of(file));
+        this._filesRepositoryMock.findFileByFilename = unit.stub().returns(Observable.of(file));
         unit.function(this._filesManager.findByFilename);
         this._filesManager.findByFilename(filename, ['filename', 'contentType', 'size'])
             .subscribe(_ => {

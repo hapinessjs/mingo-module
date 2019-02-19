@@ -62,6 +62,8 @@ class MyService {
 ```
 
 ## Change History
+* v2.0.0 (2019-02-15)
+    * Breaking Change: Add bucket name in the file document
 * v1.4.0 (2019-02-14 🌹)
     * Added a new repository layer
     * Implemented a basic retry strategy for compatibility with comsodb _error 429_. (No impact on mongodb)

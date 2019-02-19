@@ -27,6 +27,7 @@ export class MingoModuleFunctionalTest {
         const fileProperties = {
             id: null,
             filename: 'package.json',
+            bucket: 'test.bucket',
             contentType: 'application/json',
             size: fs.lstatSync('./package.json').size,
             md5: crypto.createHash('md5').update(fs.readFileSync('./package.json', { encoding: 'utf8'})).digest('hex'),

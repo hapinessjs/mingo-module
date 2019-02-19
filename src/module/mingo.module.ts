@@ -19,7 +19,8 @@ import { FilesRepository } from './repository';
         FilesRepository
     ],
     exports: [
-        MingoService
+        MingoService,
+        FilesRepository
     ]
 })
 export class MingoModule implements OnRegister {

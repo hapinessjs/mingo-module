@@ -7,7 +7,6 @@ import { Inject, Optional } from '@hapiness/core';
     collection: 'mingo.files'
 })
 export class MingoFileModel extends Model {
-
     readonly schema;
 
     constructor(
@@ -23,6 +22,10 @@ export class MingoFileModel extends Model {
 
         this.schema = new dao.Schema(
             {
+                bucket: {
+                    type: String,
+                    required: true
+                },
                 filename: {
                     type: String,
                     required: true
