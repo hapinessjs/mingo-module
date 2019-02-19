@@ -40,6 +40,7 @@ export class FilesManager {
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
                     id: undefined,
+                    bucket: this.bucketService.getName(),
                     filename: filename,
                     size: result.size,
                     contentType: result.metaData['content-type'],
@@ -49,7 +50,7 @@ export class FilesManager {
                     metadata: metadata || {}
                 })
             )
-            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(fileMeta.filename, fileMeta));
+            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(fileMeta.filename, this.bucketService.getName(), fileMeta));
     }
 
     /**
@@ -116,9 +117,11 @@ export class FilesManager {
     find(
         query?: { [key: string]: any }, projection?: string | string[], options?: { [key: string]: any }
     ): Observable<MingoFileInterface[]> {
-        const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
 
-        return this.fileRepository.findFiles(query, projectionStr, Object.assign({ limit: 10000 }, options));
+        const _options = Object.assign({ limit: 10000 }, options);
+        const _query = { ...query, bucket: this.bucketService.getName() };
+        const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
+        return this.fileRepository.findFiles(_query, projectionStr, _options);
     }
 
     /**
@@ -134,8 +137,7 @@ export class FilesManager {
         filename: string, projection?: string | string[], options?: { [key: string]: any }
     ): Observable<MingoFileInterface> {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
-
-        return this.fileRepository.findOneFile({ filename }, projectionStr, options);
+        return this.fileRepository.findFileByFilename(filename, this.bucketService.getName(), projectionStr, options);
     }
 
     /**
@@ -165,8 +167,9 @@ export class FilesManager {
     update(
         query: { [key: string]: any }, update: { [key: string]: any }, options ?: ModelUpdateOptions
     ): Observable <MingoFileInterface[]> {
-        return this.fileRepository.updateFiles(query, update, options)
-            .flatMap(() => this.find(query, null, options));
+        const _query = { ...query, bucket: this.bucketService.getName() };
+        return this.fileRepository.updateFiles(_query, update, options)
+            .flatMap(() => this.find(_query, null, options));
     }
 
     /**
@@ -181,7 +184,7 @@ export class FilesManager {
         return this.exists(filename)
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot update ${filename}. File does not exist.`)) :
-                this.fileRepository.updateFileByFilename(filename, update)
+                this.fileRepository.updateFileByFilename(filename, this.bucketService.getName(), update)
             );
      }
 
@@ -195,7 +198,8 @@ export class FilesManager {
      */
     /* istanbul ignore next */
     remove(query: { [key: string]: any }, options ?: Object): Observable <MingoFileDocumentInterface[]> {
-        return this.find(query, ['filename'], options)
+        const _query = { ...query, bucket: this.bucketService.getName() };
+        return this.find(_query, ['filename'], options)
             .map(files => files.map(file => this.removeByFilename(file.filename)))
             .flatMap(files => Observable.from(files))
             .concatAll()
@@ -210,17 +214,20 @@ export class FilesManager {
      * @memberof FilesManager
      */
     removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
-        return Observable.of(filename)
-            .flatMap(_ => _ ? Observable.of(_) : Observable.throw(Biim.badRequest(`No filename provided`)))
-            .flatMap((_: string) => this.exists(_))
+        return Observable.of(null)
+            .flatMap(() => filename ? Observable.of(null) : Observable.throw(Biim.badRequest(`No filename provided`)))
+            .flatMap(() => this.exists(filename))
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot remove ${filename}. File does not exist.`)) :
-                this.fileRepository.removeFileByFilename(filename)
+                this.fileRepository.removeFileByFilename(filename, this.bucketService.getName())
             )
             .flatMap(file =>
                 this.bucketService
                     .removeFile(filename)
-                    .flatMap(_ => _ ? Observable.of(file) : Observable.throw(Biim.badRequest(`Unable to remove file ${filename}`)))
+                    .flatMap(removed =>
+                        removed
+                            ? Observable.of(file)
+                            : Observable.throw(Biim.badRequest(`Unable to remove file ${filename}`)))
             );
    }
 }
