@@ -13,12 +13,16 @@ type PromiseLikeType<T> = PromiseLike<T> &
 
 @Injectable()
 export class FilesRepository {
+
     private maxRetryAttempts: number;
+    private maxRetryAttemptsNotAuthError: number;
+
     constructor(
         private _mongoClientService: MongoClientService,
         @Optional() @Inject(MINGO_MODULE_CONFIG) private _config: MingoConfig
     ) {
         this.maxRetryAttempts = (this._config.db || { maxRetryAttempts: 9 }).maxRetryAttempts;
+        this.maxRetryAttemptsNotAuthError = (this._config.db || { maxRetryAttemptsNotAuthError: 9 }).maxRetryAttemptsNotAuthError;
     }
 
     protected _getDocument(): Model<MingoFileDocumentInterface> {
@@ -116,14 +120,40 @@ export class FilesRepository {
     }
 
     /* istanbul ignore next */
-    private retryOnError<T>(promiseCb: () => PromiseLikeType<T>, currentAttemptIndex = 0): Promise<T> {
-        return promiseCb().catch(err => {
-            if (err.message.match(/Request rate is large/) && currentAttemptIndex < this.maxRetryAttempts) {
-                return this.delay(currentAttemptIndex * 250).then(() => this.retryOnError(promiseCb, ++currentAttemptIndex));
-            } else {
-                return Promise.reject(this.formatError(err));
+    private retryOnError<T>(promiseCb: () => PromiseLikeType<T>, currentAttemptIndex = 0, currentNotAuthAttemptIndex = 0): Promise<T> {
+        return promiseCb()
+            .catch(err => {
+                if (err.message.match(/Request rate is large/) && currentAttemptIndex < this.maxRetryAttempts) {
+                    return this.delay(currentAttemptIndex * 250)
+                        .then(() => this.retryOnError(promiseCb, ++currentAttemptIndex, currentNotAuthAttemptIndex));
+                } else if (err.message.match(/Not Authenticated/) && currentNotAuthAttemptIndex < this.maxRetryAttemptsNotAuthError) {
+                    return this.reconnect()
+                        .then(() => this.delay(currentNotAuthAttemptIndex * 250))
+                        .then(() => this.retryOnError(promiseCb, currentAttemptIndex, ++currentNotAuthAttemptIndex));
+                } else {
+                    return Promise.reject(this.formatError(err));
+                }
+            });
+    }
+
+    private reconnect(): Promise<void> {
+        try {
+            const Hapiness = require('@hapiness/core');
+            const HappyMongo = require('@hapiness/mongo');
+            const MongoExt = (Hapiness.Hapiness.extensions.find(ext => ext.token === HappyMongo.MongoClientExt) || {});
+            if (MongoExt && MongoExt.value) {
+                const mongoLib = MongoExt.value._adaptersInstances[Object.keys(MongoExt.value._adaptersInstances).shift()];
+                return mongoLib.getConnection().close()
+                    .then(() => mongoLib.connect()
+                        .flatMap(() => mongoLib.whenReady())
+                        .do(() => mongoLib.getModelManager().models = [])
+                        .flatMap(() => MongoExt.instance.storeDocuments(Hapiness.Hapiness.module))
+                        .toPromise()
+                    );
             }
-        });
+        } catch (err) {
+            return Promise.reject(err);
+        }
     }
 
     /* istanbul ignore next */

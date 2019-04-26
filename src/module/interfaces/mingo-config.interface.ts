@@ -6,5 +6,6 @@ export interface MingoConfig {
     db?: {
         connectionName: string;
         maxRetryAttempts?: number;
+        maxRetryAttemptsNotAuthError?: number;
     }
 }
