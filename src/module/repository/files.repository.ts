@@ -1,5 +1,5 @@
 
-import { Inject, Optional, Injectable, Hapiness } from '@hapiness/core';
+import { Inject, Optional, Injectable } from '@hapiness/core';
 import { MongoClientService } from '@hapiness/mongo';
 import { Model, ModelUpdateOptions } from 'mongoose';
 import { Observable } from 'rxjs';
