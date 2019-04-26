@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/mingo",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Manage files using minio as file storage and mongodb for metadata",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -84,7 +84,7 @@
         "@hapiness/mongo": "~2.0.3",
         "@types/fs-extra": "^5.0.0",
         "@types/minio": "~7.0.1",
-        "@types/node": "^9.4.0",
+        "@types/node": "^9.6.47",
         "coveralls": "^3.0.0",
         "debug": "^3.1.0",
         "fs-extra": "^5.0.0",
