@@ -57,6 +57,8 @@ export class MingoFileModel extends Model {
             }
         );
 
+        this.schema.index({ filename: 1 });
+
         this.schema.set('toJSON', {
             virtuals: true,
             transform: function (doc, ret) {
