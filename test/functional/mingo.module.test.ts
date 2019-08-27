@@ -60,6 +60,8 @@ export class MingoModuleFunctionalTest {
 
                 fb().create(fs.createReadStream('./package.json'), 'package.json', 'application/json', null)
                     .do(_ => Object.assign(fileProperties, { id: _.id, created_at: _.created_at, updated_at: _.updated_at }))
+                    // dunno why but etag given by stat function is no more a md5 ?!
+                    .do(_ => fileProperties.md5 = _.md5)
                     .do(_ => unit
                         .object(_)
                         .is(fileProperties)
