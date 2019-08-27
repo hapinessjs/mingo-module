@@ -137,7 +137,17 @@ export class FilesManager {
         filename: string, projection?: string | string[], options?: { [key: string]: any }
     ): Observable<MingoFileInterface> {
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
-        return this.fileRepository.findFileByFilename(filename, this.bucketService.getName(), projectionStr, options);
+        return Observable.of(filename)
+            .flatMap(fname => !!fname
+                ? this.fileRepository
+                    .findFileByFilename(
+                        filename,
+                        this.bucketService.getName(),
+                        projectionStr,
+                        options
+                    )
+                : Observable.throw(Biim.badRequest(`No filename provided`))
+            );
     }
 
     /**
