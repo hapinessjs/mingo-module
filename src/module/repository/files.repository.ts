@@ -74,7 +74,7 @@ export class FilesRepository {
         return Observable
             .fromPromise(
                 this.retryOnError(() =>
-                    this._getDocument().update(query, { $set: this._prepareUpdateObject(update) }, options)
+                    this._getDocument().updateMany(query, { $set: this._prepareUpdateObject(update) }, options)
                 )
             )
             .mapTo(null);
@@ -97,7 +97,7 @@ export class FilesRepository {
     public removeFileByFilename(filename: string, bucketName: string): Observable<MingoFileInterface> {
         return Observable
             .fromPromise(
-                this.retryOnError(() => this._getDocument().findOneAndRemove({ bucket: bucketName, filename }))
+                this.retryOnError(() => this._getDocument().findOneAndDelete({ bucket: bucketName, filename }))
             )
             .map(deletedFile => deletedFile ? deletedFile.toJSON() : deletedFile);
     }

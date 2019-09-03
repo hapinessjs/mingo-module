@@ -29,7 +29,7 @@ export class FilesRepositoryUnitTest {
             find: unit.stub().returns(Promise.resolve()),
             findOne: unit.stub().returns(Promise.resolve()),
             update: unit.stub().returns(Promise.resolve()),
-            findOneAndRemove: unit.stub().returns(Promise.resolve()),
+            findOneAndDelete: unit.stub().returns(Promise.resolve()),
         };
         this._mongoMock = {
             getModel: () => this._modelMock
