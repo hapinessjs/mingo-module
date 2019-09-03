@@ -63,14 +63,14 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             connectionName: 'minio'
                         }
                     },
                     {
                         name: 'mongoose-gridfs-bucket',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-gridfs-test-db',
                             connectionName: 'gridfs'
                         }
                     }
@@ -223,21 +223,21 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             db: 'db1'
                         }
                     },
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             db: 'db2'
                         }
                     },
                     {
                         name: 'mongoose-gridfs-bucket',
                         config: {
-                            url: 'mongodb://localhost:27017'
+                            url: 'mongodb://localhost:27017/mingo-gridfs-test-db'
                         }
                     }
                 ]
@@ -284,21 +284,21 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             connectionName: 'mingo'
                         }
                     },
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             connectionName: 'mongoose2'
                         }
                     },
                     {
                         name: 'mongoose-gridfs-bucket',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-gridfs-test-db',
                             connectionName: 'nope'
                         }
                     }
@@ -350,14 +350,14 @@ export class MingoModuleTest {
                     {
                         name: 'mongoose',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-test-db',
                             connectionName: 'mingo'
                         }
                     },
                     {
                         name: 'mongoose-gridfs-bucket',
                         config: {
-                            url: 'mongodb://localhost:27017',
+                            url: 'mongodb://localhost:27017/mingo-gridfs-test-db',
                             connectionName: 'nope'
                         }
                     }
