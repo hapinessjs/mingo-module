@@ -246,7 +246,7 @@ export class FilesManager {
 
     setSubDirectoryName(subDirectoryName: string): this {
         this.subDirectoryName = subDirectoryName ? `${subDirectoryName}/` : '';
-        this.subDirectoryName.replace(/[\/]*$/, '/');
+        this.subDirectoryName = this.subDirectoryName.replace(/[\/]*$/, '/');
 
         return this;
     }
