@@ -18,8 +18,8 @@ export class MingoServiceTest {
         const bucketName = 'test.bucket';
         const service = new MingoService(_filesRepository, _minioService);
 
-        unit.object(service.fromBucket(bucketName)).isInstanceOf(FilesManager);
-        unit.object(service['_managers'][`${bucketName}_`]).isInstanceOf(FilesManager);
+        unit.object(service.fromBucket(bucketName, 'sub-directory-name')).isInstanceOf(FilesManager);
+        unit.object(service['_managers'][`${bucketName}_sub-directory-name_`]).isInstanceOf(FilesManager);
         done();
     }
 

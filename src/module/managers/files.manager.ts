@@ -14,6 +14,9 @@ import {
 
 @Injectable()
 export class FilesManager {
+
+    private subDirectoryName: string;
+
     constructor(
         private bucketService: BucketManager,
         private fileRepository: FilesRepository
@@ -36,7 +39,7 @@ export class FilesManager {
      */
     upload(input: UploadFileType, filename: string, contentType?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this.bucketService
-            .createFile(input, filename, null, contentType)
+            .createFile(input, this.getFileFullPath(filename), null, contentType)
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
                     id: undefined,
@@ -86,8 +89,8 @@ export class FilesManager {
      */
     exists(filename: string): Observable<boolean> {
         return Observable.of(filename)
-            .flatMap(_ => _ ? Observable.of(_) : Observable.throw(Biim.badRequest(`No filename provided`)))
-            .flatMap((_: string) => this.bucketService.fileStat(_))
+            .flatMap(fn => fn ? Observable.of(fn) : Observable.throw(Biim.badRequest(`No filename provided`)))
+            .flatMap((fn: string) => this.bucketService.fileStat(this.getFileFullPath(filename)))
             .catch(err => {
                 if (err.code === 'NotFound') {
                     return Observable.of(null);
@@ -161,7 +164,7 @@ export class FilesManager {
         return this.findByFilename(filename, 'filename')
             .flatMap(file => this.bucketService
                 .getAdapter()
-                .getObject(this.bucketService.getName(), file.filename)
+                .getObject(this.bucketService.getName(), this.getFileFullPath(file.filename))
             );
      }
 
@@ -233,11 +236,22 @@ export class FilesManager {
             )
             .flatMap(file =>
                 this.bucketService
-                    .removeFile(filename)
+                    .removeFile(this.getFileFullPath(filename))
                     .flatMap(removed =>
                         removed
                             ? Observable.of(file)
                             : Observable.throw(Biim.badRequest(`Unable to remove file ${filename}`)))
             );
-   }
+    }
+
+    setSubDirectoryName(subDirectoryName: string): this {
+        this.subDirectoryName = subDirectoryName ? `${subDirectoryName}/` : '';
+        this.subDirectoryName.replace(/[\/]*$/, '/');
+
+        return this;
+    }
+
+    getFileFullPath(filename: string): string {
+        return `${this.subDirectoryName}${filename}`
+    }
 }
