@@ -15,7 +15,7 @@ import {
 @Injectable()
 export class FilesManager {
 
-    private subDirectoryName: string;
+    private subDirectoryName = '';
 
     constructor(
         private bucketService: BucketManager,
@@ -244,9 +244,9 @@ export class FilesManager {
             );
     }
 
-    setSubDirectoryName(subDirectoryName: string): this {
+    setSubDirectoryName(subDirectoryName?: string): this {
         this.subDirectoryName = subDirectoryName ? `${subDirectoryName}/` : '';
-        this.subDirectoryName = this.subDirectoryName.replace(/[\/]*$/, '/');
+        this.subDirectoryName = this.subDirectoryName.replace(/[\/]+$/, '/');
 
         return this;
     }
