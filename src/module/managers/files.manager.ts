@@ -16,6 +16,7 @@ import {
 export class FilesManager {
 
     private subDirectoryName = '';
+    private mongoBucketName: string;
 
     constructor(
         private bucketService: BucketManager,
@@ -254,6 +255,12 @@ export class FilesManager {
     }
 
     private getBucketNameForMongo(): string {
-        return this.subDirectoryName || this.bucketService.getName();
+        if (this.mongoBucketName) {
+            return this.mongoBucketName;
+        }
+
+        this.mongoBucketName = this.subDirectoryName.replace(/\/$/, '') || this.bucketService.getName();
+
+        return this.mongoBucketName;
     }
 }
