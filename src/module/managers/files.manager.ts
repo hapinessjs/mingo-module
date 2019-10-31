@@ -14,6 +14,10 @@ import {
 
 @Injectable()
 export class FilesManager {
+
+    private subDirectoryName = '';
+    private mongoBucketName: string;
+
     constructor(
         private bucketService: BucketManager,
         private fileRepository: FilesRepository
@@ -36,11 +40,11 @@ export class FilesManager {
      */
     upload(input: UploadFileType, filename: string, contentType?: string, metadata?: Object): Observable<MingoFileInterface> {
         return this.bucketService
-            .createFile(input, filename, null, contentType)
+            .createFile(input, this.getFileFullPath(filename), null, contentType)
             .switchMap((result): Observable<MingoFileInterface> =>
                 Observable.of({
                     id: undefined,
-                    bucket: this.bucketService.getName(),
+                    bucket: this.getBucketNameForMongo(),
                     filename: filename,
                     size: result.size,
                     contentType: result.metaData['content-type'],
@@ -50,7 +54,7 @@ export class FilesManager {
                     metadata: metadata || {}
                 })
             )
-            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(fileMeta.filename, this.bucketService.getName(), fileMeta));
+            .flatMap(fileMeta => this.fileRepository.upsertFileByFilename(fileMeta.filename, this.getBucketNameForMongo(), fileMeta));
     }
 
     /**
@@ -85,9 +89,9 @@ export class FilesManager {
      * @memberof FilesManager
      */
     exists(filename: string): Observable<boolean> {
-        return Observable.of(filename)
-            .flatMap(_ => _ ? Observable.of(_) : Observable.throw(Biim.badRequest(`No filename provided`)))
-            .flatMap((_: string) => this.bucketService.fileStat(_))
+        return Observable.of(null)
+            .flatMap(() => filename ? Observable.of(filename) : Observable.throw(Biim.badRequest(`No filename provided`)))
+            .flatMap(() => this.bucketService.fileStat(this.getFileFullPath(filename)))
             .catch(err => {
                 if (err.code === 'NotFound') {
                     return Observable.of(null);
@@ -119,7 +123,7 @@ export class FilesManager {
     ): Observable<MingoFileInterface[]> {
 
         const _options = Object.assign({ limit: 10000 }, options);
-        const _query = { ...query, bucket: this.bucketService.getName() };
+        const _query = { ...query, bucket: this.getBucketNameForMongo() };
         const projectionStr = projection && projection instanceof Array ? projection.join(' ') : projection as string;
         return this.fileRepository.findFiles(_query, projectionStr, _options);
     }
@@ -142,7 +146,7 @@ export class FilesManager {
                 ? this.fileRepository
                     .findFileByFilename(
                         filename,
-                        this.bucketService.getName(),
+                        this.getBucketNameForMongo(),
                         projectionStr,
                         options
                     )
@@ -161,7 +165,7 @@ export class FilesManager {
         return this.findByFilename(filename, 'filename')
             .flatMap(file => this.bucketService
                 .getAdapter()
-                .getObject(this.bucketService.getName(), file.filename)
+                .getObject(this.bucketService.getName(), this.getFileFullPath(file.filename))
             );
      }
 
@@ -177,7 +181,7 @@ export class FilesManager {
     update(
         query: { [key: string]: any }, update: { [key: string]: any }, options ?: ModelUpdateOptions
     ): Observable <MingoFileInterface[]> {
-        const _query = { ...query, bucket: this.bucketService.getName() };
+        const _query = { ...query, bucket: this.getBucketNameForMongo() };
         return this.fileRepository.updateFiles(_query, update, options)
             .flatMap(() => this.find(_query, null, options));
     }
@@ -194,7 +198,7 @@ export class FilesManager {
         return this.exists(filename)
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot update ${filename}. File does not exist.`)) :
-                this.fileRepository.updateFileByFilename(filename, this.bucketService.getName(), update)
+                this.fileRepository.updateFileByFilename(filename, this.getBucketNameForMongo(), update)
             );
      }
 
@@ -208,7 +212,7 @@ export class FilesManager {
      */
     /* istanbul ignore next */
     remove(query: { [key: string]: any }, options ?: Object): Observable <MingoFileDocumentInterface[]> {
-        const _query = { ...query, bucket: this.bucketService.getName() };
+        const _query = { ...query, bucket: this.getBucketNameForMongo() };
         return this.find(_query, ['filename'], options)
             .map(files => files.map(file => this.removeByFilename(file.filename)))
             .flatMap(files => Observable.from(files))
@@ -224,20 +228,39 @@ export class FilesManager {
      * @memberof FilesManager
      */
     removeByFilename(filename: string): Observable<MingoFileDocumentInterface> {
-        return Observable.of(null)
-            .flatMap(() => filename ? Observable.of(null) : Observable.throw(Biim.badRequest(`No filename provided`)))
-            .flatMap(() => this.exists(filename))
+        return this.exists(filename)
             .flatMap(doesFileExist => !doesFileExist ?
                 Observable.throw(Biim.notFound(`Cannot remove ${filename}. File does not exist.`)) :
-                this.fileRepository.removeFileByFilename(filename, this.bucketService.getName())
+                this.fileRepository.removeFileByFilename(filename, this.getBucketNameForMongo())
             )
             .flatMap(file =>
                 this.bucketService
-                    .removeFile(filename)
+                    .removeFile(this.getFileFullPath(filename))
                     .flatMap(removed =>
                         removed
                             ? Observable.of(file)
                             : Observable.throw(Biim.badRequest(`Unable to remove file ${filename}`)))
             );
-   }
+    }
+
+    setSubDirectoryName(subDirectoryName?: string): this {
+        this.subDirectoryName = subDirectoryName ? `${subDirectoryName}/` : '';
+        this.subDirectoryName = this.subDirectoryName.replace(/[\/]+$/, '/');
+
+        return this;
+    }
+
+    private getFileFullPath(filename: string): string {
+        return `${this.subDirectoryName}${filename}`
+    }
+
+    private getBucketNameForMongo(): string {
+        if (this.mongoBucketName) {
+            return this.mongoBucketName;
+        }
+
+        this.mongoBucketName = this.subDirectoryName.replace(/\/$/, '') || this.bucketService.getName();
+
+        return this.mongoBucketName;
+    }
 }

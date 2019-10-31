@@ -18,8 +18,8 @@ export class MingoServiceTest {
         const bucketName = 'test.bucket';
         const service = new MingoService(_filesRepository, _minioService);
 
-        unit.object(service.fromBucket(bucketName)).isInstanceOf(FilesManager);
-        unit.object(service['_managers'][`${bucketName}_`]).isInstanceOf(FilesManager);
+        unit.object(service.fromBucket(bucketName, 'sub-directory-name')).isInstanceOf(FilesManager);
+        unit.object(service['_managers'][`${bucketName}_sub-directory-name_`]).isInstanceOf(FilesManager);
         done();
     }
 
@@ -33,8 +33,8 @@ export class MingoServiceTest {
         const bucketRegion = 'ap-northeast-1';
 
         const service = new MingoService(_filesRepository, _minioService);
-        const firstCall = service.fromBucket(bucketName, bucketRegion);
-        const secondCall = service.fromBucket(bucketName, bucketRegion);
+        const firstCall = service.fromBucket(bucketName, null, bucketRegion);
+        const secondCall = service.fromBucket(bucketName, null, bucketRegion);
 
         unit.object(firstCall).isInstanceOf(FilesManager);
         unit.object(secondCall).isInstanceOf(FilesManager);
