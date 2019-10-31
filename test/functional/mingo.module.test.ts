@@ -22,7 +22,7 @@ import { FilesRepository } from '../../src/module/repository';
 
 @suite('- MingoModule functional test file')
 export class MingoModuleFunctionalTest {
-    @test.skip('Mingo module load successfuly and run several commands')
+    @test('Mingo module load successfuly and run several commands')
     mingoRunSuccess(done) {
         const fileProperties = {
             id: null,
